@@ -1,6 +1,10 @@
+# coding=utf-8
+# -*- coding: utf-8 -*-
+# 用于测试WCDMA物理层上下行吞吐量
+# 手机需关闭数据业务开关，否则无法进入Connected状态，而进入PDP ACTIVE状态
+
 import time
 import visa
-# import pyvisa
 import my_logging
 
 
@@ -14,14 +18,12 @@ class WcdmaThroughput(object):
         self.logger.info(rm)
         self.logger.info(rm.list_resources())
 
-        # rm2 = pyvisa
-        # print visa.get_instruments_list()
         self.my_instr = rm.open_resource('GPIB0::15::INSTR')
-        # print self.my_instr.query("*IDN?")
+        self.logger.info(str(self.my_instr.query("*IDN?")))
 
         self.bands = [
             [1, [10563, 10700, 10837]],  # band1
-            [2, [9663, 9800, 9937]],  # band2
+            # [2, [9663, 9800, 9937]],  # band2
             # [4, [1538, 1675, 1737]],  # band4
             [5, [4358, 4400, 4457]],  # band5
             [8, [2938, 3013, 3087]]  # band8
@@ -38,7 +40,9 @@ class WcdmaThroughput(object):
 
     def handover(self, channel, band=1, channel_type="low/mid"):
         if channel:
-            self.write("CALL:SETup:CHANnel:DOWNlink %s" % str(channel))
+            self.logger.info("band: %s, channel: %s", str(band), str(channel))
+            self.write("CALL:SETup:CHANnel:DOWNlink %s" %str(channel))
+            # self.write("CALL:SETup:CHANnel:DOWNlink %s" % str(channel))
         # print self.read()
         if band == 5:
             self.write("CALL:SETup:CHANnel:BARBitrator BAND5")
@@ -53,17 +57,14 @@ class WcdmaThroughput(object):
         i = 3
         while i > 0:
             self.write("CALL:STAT?")
-
             status = str(self.read())
-            self.logger.info( "status:"+ status)
+            self.logger.info("status:" + status)
             if status == "CONN\n":
                 break
             else:
-                print "wait for connect..."
-
+                self.logger.info("wait for connect...")
                 time.sleep(1)
                 i -= 1
-                # print self.read()
 
     def init_logging(self):
         pass
@@ -82,23 +83,19 @@ class WcdmaThroughput(object):
 
     def set_cable_loss(self):
         self.write("SYST:CORR:STAT ON")
+        self.write("SYSTEM:CORRECTION:FREQUENCY 800.0 MHZ,1800.0 MHZ")
+        self.write("SYSTEM:CORRECTION:GAIN -0.50,-0.80")
 
-        # print my_instr
-        # print my_instr.query("*IDN?")
-        # my_instr.write("CALL:COUNt:DTMonitor")
-        # my_instr.write("CALL:ORIG")
-        # my_instr.write("SYST:CORR:STAT ON")
-        # my_instr.write("CALL:END")
-        # my_instr.write("SYSTEM:CORRECTION:FREQUENCY 800.0 MHZ,1800.0 MHZ")
-        # my_instr.write("SYSTEM:CORRECTION:GAIN -0.50,-0.80")
+    def set_downlink_environment(self):
+        self.set_cable_loss()
+
+    def set_uplink_environment(self):
+        self.set_cable_loss()
 
     def get_downlink_result(self):
         self.write("SYST:MEAS:RES")  # Reset measurement
         time.sleep(5)
         transmit = self.query("CALL:HSDPa:MS:REPorted:BLOCks?")  # return blocks transmitted
-        # while transmit < 1E4:
-        #     print "transmit: ", transmit
-        #     transmit = self.query("CALL:HSDPa:MS:REPorted:ACK?")  # return blocks transmitted
         throughput = self.query("CALL:HSDPa:MS:REPorted:IBTHroughput?")  # return throughput
         ber = self.query("CALL:HSDPa:MS:REPorted:HBLerror:RATio?")  # return BER
         self.logger.info("transmit: " + str(transmit))
@@ -108,8 +105,14 @@ class WcdmaThroughput(object):
 
     def get_uplink_result(self):
         self.write("SYST:MEAS:RES")
+        time.sleep(5)
+        transmit = self.query("CALL:STATus:EHIChannel:ACK?")
+        throughput = self.query("CALL:STATus:EDCHannel:IBTHroughput?")
+        self.logger.info("transmit: " + str(transmit))
+        self.logger.info("throughput: " + str(throughput))
+        return [transmit, throughput]
 
-    def run_case(self):
+    def case_all_downlink(self):
         filename = 'result\\result_%s.txt' % str(self.local_time)
         for band in self.bands:
             for i in range(len(band[1])):
@@ -119,10 +122,28 @@ class WcdmaThroughput(object):
                 else:
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type)
-                throughput = self.get_downlink_result()
-                self.save_result(filename, band[0], channel, throughput)
+                result = self.get_downlink_result()
+                self.save_result(filename, band[0], channel, result)
+
+    def case_all_uplink(self):
+        filename = 'result\\result_%s.txt' % str(self.local_time)
+        for band in self.bands:
+            for i in range(len(band[1])):
+                channel = band[1][i]
+                if i / 2 == 1:
+                    channel_type = "high"
+                else:
+                    channel_type = "low/mid"
+                self.handover(channel, band[0], channel_type)
+                result = self.get_uplink_result()
+                self.save_result(filename, band[0], channel, result)
+
+    def test_handover(self):
+        self.write("CALL:SETup:CHANnel:DOWNlink 10700")
+        self.write("CALL:HAND:PCR")
 
 
 if __name__ == "__main__":
     test_case = WcdmaThroughput()
-    test_case.run_case()
+    # test_case.case_all_uplink()
+    test_case.case_all_uplink()

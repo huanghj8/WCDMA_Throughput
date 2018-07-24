@@ -1,0 +1,76 @@
+2018-07-24 16:50:54,842 wcdma_throughput.py[line:18] INFO Resource Manager of Visa Library at C:\Windows\system32\visa32.dll
+2018-07-24 16:50:55,059 wcdma_throughput.py[line:19] INFO (u'ASRL6::INSTR',)
+2018-07-24 16:50:55,081 wcdma_throughput.py[line:22] INFO Agilent Technologies,8960 Series 10 E5515E,MY52111006,I.01.09
+
+2018-07-24 16:50:55,081 wcdma_throughput.py[line:43] INFO band: 1, channel: 10563
+2018-07-24 16:50:57,086 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:02,098 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:02,098 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:02,099 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:02,108 wcdma_throughput.py[line:43] INFO band: 1, channel: 10700
+2018-07-24 16:51:04,115 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:09,124 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:09,125 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:09,125 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:09,131 wcdma_throughput.py[line:43] INFO band: 1, channel: 10837
+2018-07-24 16:51:11,140 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:16,148 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:16,148 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:16,148 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:16,151 wcdma_throughput.py[line:43] INFO band: 5, channel: 4358
+2018-07-24 16:51:18,160 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:23,171 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:23,171 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:23,173 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:23,177 wcdma_throughput.py[line:43] INFO band: 5, channel: 4400
+2018-07-24 16:51:25,187 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:30,196 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:30,197 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:30,200 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:30,203 wcdma_throughput.py[line:43] INFO band: 5, channel: 4457
+2018-07-24 16:51:32,213 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:37,224 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:37,226 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:37,226 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:37,230 wcdma_throughput.py[line:43] INFO band: 8, channel: 2938
+2018-07-24 16:51:39,239 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:44,247 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:44,249 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:44,250 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:44,253 wcdma_throughput.py[line:43] INFO band: 8, channel: 3013
+2018-07-24 16:51:46,262 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:51,270 wcdma_throughput.py[line:111] INFO transmit: +2.50000000E+003
+
+2018-07-24 16:51:51,272 wcdma_throughput.py[line:112] INFO throughput: +1.10280000E+004
+
+2018-07-24 16:51:51,273 wcdma_throughput.py[line:76] INFO begin to save...
+2018-07-24 16:51:51,276 wcdma_throughput.py[line:43] INFO band: 8, channel: 3087
+2018-07-24 16:51:53,286 wcdma_throughput.py[line:61] INFO status:CONN
+
+2018-07-24 16:51:58,296 wcdma_throughput.py[line:111] INFO transmit: +2.49600000E+003
+
+2018-07-24 16:51:58,296 wcdma_throughput.py[line:112] INFO throughput: +1.10100000E+004
+
+2018-07-24 16:51:58,298 wcdma_throughput.py[line:76] INFO begin to save...

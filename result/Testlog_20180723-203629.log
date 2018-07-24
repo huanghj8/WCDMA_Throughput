@@ -1,0 +1,28 @@
+2018-07-23 20:36:29,969 util.py[line:55] DEBUG No user defined library files
+2018-07-23 20:36:29,973 highlevel.py[line:81] DEBUG Automatically found library files: ['C:\\Windows\\system32\\visa32.dll', 'C:\\Windows\\system32\\visa32.dll']
+2018-07-23 20:36:29,980 highlevel.py[line:143] DEBUG Library signatures: 90 ok, 0 failed
+2018-07-23 20:36:29,982 highlevel.py[line:116] DEBUG Created library wrapper for C:\Windows\system32\visa32.dll
+2018-07-23 20:36:29,994 highlevel.py[line:155] DEBUG viOpenDefaultRM('<ViObject object at 0x025638A0>',) -> 0
+2018-07-23 20:36:29,994 highlevel.py[line:1502] DEBUG Created ResourceManager with session 28485240
+2018-07-23 20:36:30,104 highlevel.py[line:155] DEBUG viFindRsrc(28485240L, u'?*::INSTR', '<ViObject object at 0x025638A0>', 'c_ulong(2L)', <ctypes.c_char_Array_256 object at 0x02563850>) -> 0
+2018-07-23 20:36:30,105 highlevel.py[line:155] DEBUG viFindNext(<ViObject object at 0x025638A0>, <ctypes.c_char_Array_256 object at 0x02563850>) -> 0
+2018-07-23 20:36:30,105 highlevel.py[line:155] DEBUG viClose(<ViObject object at 0x025638A0>,) -> 0
+2018-07-23 20:36:30,107 highlevel.py[line:155] DEBUG viParseRsrcEx(28485240L, 'GPIB0::15::INSTR', 'c_ushort(1)', 'c_ushort(0)', <ctypes.c_char_Array_256 object at 0x02563990>, <ctypes.c_char_Array_256 object at 0x02563800>, <ctypes.c_char_Array_256 object at 0x025637B0>) -> 0
+2018-07-23 20:36:30,108 resource.py[line:201] DEBUG GPIB0::15::INSTR - opening ...
+2018-07-23 20:36:30,114 highlevel.py[line:155] DEBUG viOpen(28485240L, 'GPIB0::15::INSTR', <AccessModes.no_lock: 0>, 0, '<ViObject object at 0x025637B0>') -> 0
+2018-07-23 20:36:30,115 resource.py[line:224] DEBUG GPIB0::15::INSTR - is open with session 39677528
+2018-07-23 20:36:30,115 highlevel.py[line:155] DEBUG viWrite(39677528L, 'CALL:SETup:CHANnel:DOWNlink 10563\r\n', 35, 'c_ulong(35L)') -> 0
+2018-07-23 20:36:30,117 highlevel.py[line:155] DEBUG viWrite(39677528L, 'CALL:SETup:CHANnel:BARBitrator BAND5\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-23 20:36:30,118 highlevel.py[line:155] DEBUG viWrite(39677528L, 'CALL:HAND:PCR\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-23 20:36:32,118 highlevel.py[line:155] DEBUG viWrite(39677528L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-23 20:36:32,121 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-23 20:36:32,122 highlevel.py[line:155] DEBUG viRead(39677528L, <ctypes.c_char_Array_20480 object at 0x02563800>, 20480, 'c_ulong(5L)') -> 0
+2018-07-23 20:36:33,125 highlevel.py[line:155] DEBUG viWrite(39677528L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-23 20:36:33,127 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-23 20:36:33,128 highlevel.py[line:155] DEBUG viRead(39677528L, <ctypes.c_char_Array_20480 object at 0x025637B0>, 20480, 'c_ulong(5L)') -> 0
+2018-07-23 20:36:34,131 highlevel.py[line:155] DEBUG viWrite(39677528L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-23 20:36:34,132 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-23 20:36:34,134 highlevel.py[line:155] DEBUG viRead(39677528L, <ctypes.c_char_Array_20480 object at 0x02563800>, 20480, 'c_ulong(5L)') -> 0
+2018-07-23 20:36:35,137 highlevel.py[line:155] DEBUG viWrite(39677528L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-23 20:36:35,138 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-23 20:36:35,141 highlevel.py[line:155] DEBUG viRead(39677528L, <ctypes.c_char_Array_20480 object at 0x025637B0>, 20480, 'c_ulong(5L)') -> 0

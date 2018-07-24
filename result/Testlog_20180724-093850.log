@@ -1,0 +1,75 @@
+2018-07-24 09:38:50,617 util.py[line:55] DEBUG No user defined library files
+2018-07-24 09:38:50,619 highlevel.py[line:81] DEBUG Automatically found library files: ['C:\\Windows\\system32\\visa32.dll', 'C:\\Windows\\system32\\visa32.dll']
+2018-07-24 09:38:50,628 highlevel.py[line:143] DEBUG Library signatures: 90 ok, 0 failed
+2018-07-24 09:38:50,628 highlevel.py[line:116] DEBUG Created library wrapper for C:\Windows\system32\visa32.dll
+2018-07-24 09:38:50,641 highlevel.py[line:155] DEBUG viOpenDefaultRM('<ViObject object at 0x026788A0>',) -> 0
+2018-07-24 09:38:50,641 highlevel.py[line:1502] DEBUG Created ResourceManager with session 29075064
+2018-07-24 09:38:50,747 highlevel.py[line:155] DEBUG viFindRsrc(29075064L, u'?*::INSTR', '<ViObject object at 0x026788A0>', 'c_ulong(2L)', <ctypes.c_char_Array_256 object at 0x02678850>) -> 0
+2018-07-24 09:38:50,749 highlevel.py[line:155] DEBUG viFindNext(<ViObject object at 0x026788A0>, <ctypes.c_char_Array_256 object at 0x02678850>) -> 0
+2018-07-24 09:38:50,749 highlevel.py[line:155] DEBUG viClose(<ViObject object at 0x026788A0>,) -> 0
+2018-07-24 09:38:50,750 highlevel.py[line:155] DEBUG viParseRsrcEx(29075064L, 'GPIB0::15::INSTR', 'c_ushort(1)', 'c_ushort(0)', <ctypes.c_char_Array_256 object at 0x02678940>, <ctypes.c_char_Array_256 object at 0x02678800>, <ctypes.c_char_Array_256 object at 0x026787B0>) -> 0
+2018-07-24 09:38:50,752 resource.py[line:201] DEBUG GPIB0::15::INSTR - opening ...
+2018-07-24 09:38:50,759 highlevel.py[line:155] DEBUG viOpen(29075064L, 'GPIB0::15::INSTR', <AccessModes.no_lock: 0>, 0, '<ViObject object at 0x026787B0>') -> 0
+2018-07-24 09:38:50,759 resource.py[line:224] DEBUG GPIB0::15::INSTR - is open with session 40857960
+2018-07-24 09:38:50,760 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:SETup:CHANnel:DOWNlink 10563\r\n', 35, 'c_ulong(35L)') -> 0
+2018-07-24 09:38:50,762 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:SETup:CHANnel:BARBitrator BAND5\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-24 09:38:50,763 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HAND:PCR\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-24 09:38:52,763 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:38:52,766 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:52,767 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x02678800>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:38:53,770 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:38:53,773 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:53,775 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:38:54,776 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:38:54,776 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:54,778 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x02678800>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:38:55,779 highlevel.py[line:155] DEBUG viWrite(40857960L, 'SYST:MEAS:RES\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-24 09:38:55,782 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HSDPa:MS:REPorted:ACK?\r\n', 29, 'c_ulong(29L)') -> 0
+2018-07-24 09:38:55,785 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:55,789 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(8L)') -> 0
+2018-07-24 09:38:55,792 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HSDPa:MS:REPorted:IBTHroughput?\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-24 09:38:55,795 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:55,796 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(8L)') -> 0
+2018-07-24 09:38:55,802 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:SETup:CHANnel:DOWNlink 10700\r\n', 35, 'c_ulong(35L)') -> 0
+2018-07-24 09:38:55,805 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:SETup:CHANnel:BARBitrator BAND5\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-24 09:38:55,806 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HAND:PCR\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-24 09:38:57,809 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:38:57,811 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:57,812 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:38:58,815 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:38:58,816 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:58,819 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x02678800>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:38:59,821 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:38:59,822 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:38:59,825 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:39:00,828 highlevel.py[line:155] DEBUG viWrite(40857960L, 'SYST:MEAS:RES\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-24 09:39:00,831 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HSDPa:MS:REPorted:ACK?\r\n', 29, 'c_ulong(29L)') -> 0
+2018-07-24 09:39:00,832 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:39:00,838 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x02678800>, 20480, 'c_ulong(8L)') -> 0
+2018-07-24 09:39:00,841 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HSDPa:MS:REPorted:IBTHroughput?\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-24 09:39:00,842 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:39:00,845 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x02678800>, 20480, 'c_ulong(8L)') -> 0
+2018-07-24 09:39:00,849 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:SETup:CHANnel:DOWNlink 10837\r\n', 35, 'c_ulong(35L)') -> 0
+2018-07-24 09:39:00,851 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:SETup:CHANnel:BARBitrator BAND5\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-24 09:39:00,855 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HAND:PCR\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-24 09:39:02,857 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:39:02,858 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:39:02,861 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x02678800>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:39:03,862 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:39:03,865 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:39:03,867 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:39:04,871 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-24 09:39:04,871 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:39:04,875 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x02678800>, 20480, 'c_ulong(5L)') -> 0
+2018-07-24 09:39:05,877 highlevel.py[line:155] DEBUG viWrite(40857960L, 'SYST:MEAS:RES\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-24 09:39:05,880 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HSDPa:MS:REPorted:ACK?\r\n', 29, 'c_ulong(29L)') -> 0
+2018-07-24 09:39:05,881 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:39:05,887 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(8L)') -> 0
+2018-07-24 09:39:05,890 highlevel.py[line:155] DEBUG viWrite(40857960L, 'CALL:HSDPa:MS:REPorted:IBTHroughput?\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-24 09:39:05,891 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-24 09:39:05,894 highlevel.py[line:155] DEBUG viRead(40857960L, <ctypes.c_char_Array_20480 object at 0x026787B0>, 20480, 'c_ulong(8L)') -> 0
+2018-07-24 09:39:05,917 resource.py[line:236] DEBUG GPIB0::15::INSTR - closing
+2018-07-24 09:39:05,921 highlevel.py[line:155] DEBUG viDisableEvent(40857960L, 1073709055, 65535) -> 1073676291
+2018-07-24 09:39:05,921 highlevel.py[line:155] DEBUG viDiscardEvents(40857960L, 1073709055, 65535) -> 1073676292
+2018-07-24 09:39:05,923 highlevel.py[line:155] DEBUG viClose(40857960L,) -> 0
+2018-07-24 09:39:05,924 resource.py[line:240] DEBUG GPIB0::15::INSTR - is closed

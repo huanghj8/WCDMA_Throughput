@@ -1,0 +1,20 @@
+2018-07-23 20:37:14,223 util.py[line:55] DEBUG No user defined library files
+2018-07-23 20:37:14,226 highlevel.py[line:81] DEBUG Automatically found library files: ['C:\\Windows\\system32\\visa32.dll', 'C:\\Windows\\system32\\visa32.dll']
+2018-07-23 20:37:14,234 highlevel.py[line:143] DEBUG Library signatures: 90 ok, 0 failed
+2018-07-23 20:37:14,236 highlevel.py[line:116] DEBUG Created library wrapper for C:\Windows\system32\visa32.dll
+2018-07-23 20:37:14,249 highlevel.py[line:155] DEBUG viOpenDefaultRM('<ViObject object at 0x025918A0>',) -> 0
+2018-07-23 20:37:14,249 highlevel.py[line:1502] DEBUG Created ResourceManager with session 30254712
+2018-07-23 20:37:14,381 highlevel.py[line:155] DEBUG viFindRsrc(30254712L, u'?*::INSTR', '<ViObject object at 0x025918A0>', 'c_ulong(2L)', <ctypes.c_char_Array_256 object at 0x02591850>) -> 0
+2018-07-23 20:37:14,381 highlevel.py[line:155] DEBUG viFindNext(<ViObject object at 0x025918A0>, <ctypes.c_char_Array_256 object at 0x02591850>) -> 0
+2018-07-23 20:37:14,382 highlevel.py[line:155] DEBUG viClose(<ViObject object at 0x025918A0>,) -> 0
+2018-07-23 20:37:14,384 highlevel.py[line:155] DEBUG viParseRsrcEx(30254712L, 'GPIB0::15::INSTR', 'c_ushort(1)', 'c_ushort(0)', <ctypes.c_char_Array_256 object at 0x02591990>, <ctypes.c_char_Array_256 object at 0x02591800>, <ctypes.c_char_Array_256 object at 0x025917B0>) -> 0
+2018-07-23 20:37:14,384 resource.py[line:201] DEBUG GPIB0::15::INSTR - opening ...
+2018-07-23 20:37:14,391 highlevel.py[line:155] DEBUG viOpen(30254712L, 'GPIB0::15::INSTR', <AccessModes.no_lock: 0>, 0, '<ViObject object at 0x025917B0>') -> 0
+2018-07-23 20:37:14,391 resource.py[line:224] DEBUG GPIB0::15::INSTR - is open with session 39878264
+2018-07-23 20:37:14,394 highlevel.py[line:155] DEBUG viWrite(39878264L, 'CALL:SETup:CHANnel:DOWNlink 10563\r\n', 35, 'c_ulong(35L)') -> 0
+2018-07-23 20:37:14,394 highlevel.py[line:155] DEBUG viWrite(39878264L, 'CALL:SETup:CHANnel:BARBitrator BAND5\r\n', 38, 'c_ulong(38L)') -> 0
+2018-07-23 20:37:14,395 highlevel.py[line:155] DEBUG viWrite(39878264L, 'CALL:HAND:PCR\r\n', 15, 'c_ulong(15L)') -> 0
+2018-07-23 20:37:16,397 highlevel.py[line:155] DEBUG viWrite(39878264L, 'CALL:STAT?\r\n', 12, 'c_ulong(12L)') -> 0
+2018-07-23 20:37:16,398 messagebased.py[line:305] DEBUG GPIB0::15::INSTR - reading 20480 bytes (last status <StatusCode.success_max_count_read: 1073676294>)
+2018-07-23 20:37:18,437 highlevel.py[line:155] DEBUG viRead(39878264L, <ctypes.c_char_Array_20480 object at 0x02591800>, 20480, 'c_ulong(0L)') -> -1073807339
+2018-07-23 20:37:18,438 messagebased.py[line:309] DEBUG GPIB0::15::INSTR - exception while reading: VI_ERROR_TMO (-1073807339): Timeout expired before operation completed.

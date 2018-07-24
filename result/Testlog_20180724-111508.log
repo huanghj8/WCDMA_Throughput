@@ -1,0 +1,54 @@
+2018-07-24 11:15:13,371 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:13,371 wcdma_throughput.py[line:102] INFO throughput: +4.21920000E+004
+
+2018-07-24 11:15:13,372 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:18,397 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:18,398 wcdma_throughput.py[line:102] INFO throughput: +4.21920000E+004
+
+2018-07-24 11:15:18,400 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:23,424 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:23,426 wcdma_throughput.py[line:102] INFO throughput: +4.21920000E+004
+
+2018-07-24 11:15:23,427 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:28,451 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:28,453 wcdma_throughput.py[line:102] INFO throughput: +4.21920000E+004
+
+2018-07-24 11:15:28,453 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:33,477 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:33,479 wcdma_throughput.py[line:102] INFO throughput: +4.21920000E+004
+
+2018-07-24 11:15:33,480 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:38,505 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:38,506 wcdma_throughput.py[line:102] INFO throughput: +4.16560000E+004
+
+2018-07-24 11:15:38,506 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:43,529 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:43,529 wcdma_throughput.py[line:102] INFO throughput: +4.19800000E+004
+
+2018-07-24 11:15:43,530 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:48,549 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:48,549 wcdma_throughput.py[line:102] INFO throughput: +4.21770000E+004
+
+2018-07-24 11:15:48,549 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+
+2018-07-24 11:15:53,568 wcdma_throughput.py[line:101] INFO transmit: +3.00000000E+003
+
+2018-07-24 11:15:53,569 wcdma_throughput.py[line:102] INFO throughput: +4.21770000E+004
+
+2018-07-24 11:15:53,569 wcdma_throughput.py[line:103] INFO BER: +3.00000000E+003
+

@@ -9,7 +9,7 @@ import my_logging
 
 
 class WcdmaThroughput(object):
-    def __init__(self):
+    def __init__(self, test_bands):
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
         self.local_time = time.strftime("%Y%m%d-%H%M%S")
@@ -18,16 +18,18 @@ class WcdmaThroughput(object):
         self.logger.info(rm)
         self.logger.info(rm.list_resources())
 
-        self.my_instr = rm.open_resource('GPIB0::15::INSTR')
-        self.logger.info(str(self.my_instr.query("*IDN?")))
+        try:
+            self.my_instr = rm.open_resource('GPIB0::15::INSTR')
+            query = self.my_instr.query("*IDN?")
+            self.logger.info("Query result: %s" % str(query))
+            if query == "":
+                self.logger.error("无法连接至8960！")
+        except Exception, e:
+            self.logger.error(str(Exception))
+            self.logger.error(e)
+            self.logger.error("无法识别GPIB设备！")
 
-        self.bands = [
-            [1, [10563, 10700, 10837]],  # band1
-            # [2, [9663, 9800, 9937]],  # band2
-            # [4, [1538, 1675, 1737]],  # band4
-            [5, [4358, 4400, 4457]],  # band5
-            [8, [2938, 3013, 3087]]  # band8
-        ]
+        self.bands = test_bands
         self.chip_set = "MTK"
 
     def write(self, command):
@@ -81,10 +83,10 @@ class WcdmaThroughput(object):
         result_file.writelines(str(result) + '\n')
         result_file.close()
 
-    def set_cable_loss(self):
+    def set_cable_loss(self, fre1=800.0, fre2=1800.0, att1=-0.50, att2=-0.80):
         self.write("SYST:CORR:STAT ON")
-        self.write("SYSTEM:CORRECTION:FREQUENCY 800.0 MHZ,1800.0 MHZ")
-        self.write("SYSTEM:CORRECTION:GAIN -0.50,-0.80")
+        self.write("SYSTEM:CORRECTION:FREQUENCY %s MHZ,%s MHZ" % (str(fre1), str(fre2)))
+        self.write("SYSTEM:CORRECTION:GAIN %s,%s" % (str(att1), str(att2)))
 
     def reset(self):
         self.write("*RST")
@@ -278,7 +280,14 @@ class WcdmaThroughput(object):
 
 if __name__ == "__main__":
     # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，运行相关框架，执行事件监听
-    test_case = WcdmaThroughput()
+    test_bands = [
+        [1, [10563, 10700, 10837]],  # band1
+        # [2, [9663, 9800, 9937]],  # band2
+        # [4, [1538, 1675, 1737]],  # band4
+        [5, [4358, 4400, 4457]],  # band5
+        [8, [2938, 3013, 3087]]  # band8
+    ]
+    test_case = WcdmaThroughput(test_bands)
     test_case.case_all_downlink()
     test_case.case_all_uplink()
     # test_case.test_instruction()

@@ -6,9 +6,9 @@ class MyLogging(object):
     def __init__(self):
         self.formatter = logging.Formatter(
             '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+        self.local_time = time.strftime("%Y%m%d-%H%M%S")
         self.console_handler = logging.StreamHandler()
         self.file_handler = logging.FileHandler('result\Testlog_%s.log' % self.local_time)
-        self.local_time = time.strftime("%Y%m%d-%H%M%S")
 
     def get_logger(self):
         logger = logging.getLogger("Logger")

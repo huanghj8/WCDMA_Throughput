@@ -1,6 +1,6 @@
 # coding=utf-8
 # -*- coding: utf-8 -*-
-# 用于测试WCDMA物理层上下行吞吐量
+# 用于测试WCDMA物理层上下行吞吐量,8960 Application当前为Fast Switch Lab App
 # 手机需关闭数据业务开关，否则无法进入Connected状态，而进入PDP ACTIVE状态
 
 import time
@@ -48,7 +48,6 @@ class WcdmaThroughput(object):
         if band == 5:
             self.write("CALL:SETup:CHANnel:BARBitrator BAND5")
         if channel_type == "high":
-            # CALL:SETup[:PCRconfig]:SSCell:CHANnel:ADJacent HIGHer
             self.write("CALL:SETup:SSCell:CHANnel:ADJacent LOWer")
         else:  # low/mid
             self.write("CALL:SETup:SSCell:CHANnel:ADJacent HIGHer")
@@ -60,11 +59,11 @@ class WcdmaThroughput(object):
             self.write("CALL:STAT?")
             status = str(self.read())
             self.logger.info("status:" + status)
-            if status == "CONN\n":
+            if status == "CONN\n":  # Connected is returned when the test set and UE are connected on a call.
                 break
             else:
                 self.logger.info("wait for connect...")
-                time.sleep(1)
+                time.sleep(2)
                 i -= 1
 
     def init_logging(self):
@@ -87,6 +86,29 @@ class WcdmaThroughput(object):
         self.write("SYSTEM:CORRECTION:FREQUENCY 800.0 MHZ,1800.0 MHZ")
         self.write("SYSTEM:CORRECTION:GAIN -0.50,-0.80")
 
+    def reset(self):
+        self.write("*RST")
+
+    def active_cell(self):
+        self.write("CALL:OPERating:MODE CALL")
+        time.sleep(1)
+
+    def originate_call(self):
+
+        i = 100
+        while i > 0:
+            self.write("CALL:ORIGinate")
+            time.sleep(5)
+            self.write("CALL:STAT?")
+            status = str(self.read())
+            self.logger.info("status:" + status)
+            if status == "CONN\n":
+                break
+            else:
+                self.logger.info("wait for connect... try time: %d" % (101 - i))
+                time.sleep(2)
+                i -= 1
+
     def set_downlink_environment(self):
         """
         配置下行吞吐量测试环境
@@ -94,7 +116,7 @@ class WcdmaThroughput(object):
         """
         # preset
         self.logger.info("preset")
-        self.write("*RST")
+        self.reset()
         self.write("CALL:BCCHannel:UPDAtepage AUTO")
         self.write("CALL:ATTFlag ON")
         self.write("CALL:UPLink:TXPower:LEVel:MAXimum 24")
@@ -180,14 +202,22 @@ class WcdmaThroughput(object):
                 time.sleep(1)
                 i -= 1
 
-    def recall_dl_register(self):
-        self.write("SYSTem:REGister:RECall 6")
-
-    def recall_ul_register(self):
-        self.write("SYSTem:REGister:RECall 4")
-
     def set_uplink_environment(self):
         self.set_cable_loss()
+
+    def recall_dl_register(self):
+        self.reset()
+        self.set_cable_loss()
+        self.write("SYSTem:REGister:RECall 6")
+        self.active_cell()
+        self.originate_call()
+
+    def recall_ul_register(self):
+        self.reset()
+        self.set_cable_loss()
+        self.write("SYSTem:REGister:RECall 10")
+        self.active_cell()
+        self.originate_call()
 
     def get_downlink_result(self):
         self.write("SYST:MEAS:RES")  # Reset measurement
@@ -210,6 +240,8 @@ class WcdmaThroughput(object):
         return [transmit, throughput]
 
     def case_all_downlink(self):
+        self.logger.info("#############  Begin to Test Downlink  #############")
+        self.recall_dl_register()
         filename = 'result\\result_%s.txt' % str(self.local_time)
         for band in self.bands:
             for i in range(len(band[1])):
@@ -221,8 +253,11 @@ class WcdmaThroughput(object):
                 self.handover(channel, band[0], channel_type)
                 result = self.get_downlink_result()
                 self.save_result(filename, band[0], channel, result)
+        self.logger.info("############# DownLink Test Completed! ###########")
 
     def case_all_uplink(self):
+        self.logger.info("#############  Begin to Test Uplink  #############")
+        self.recall_ul_register()
         filename = 'result\\result_%s.txt' % str(self.local_time)
         for band in self.bands:
             for i in range(len(band[1])):
@@ -235,16 +270,15 @@ class WcdmaThroughput(object):
                 result = self.get_uplink_result()
                 self.save_result(filename, band[0], channel, result)
 
-    def test_handover(self):
-        self.write("CALL:SETup:CHANnel:DOWNlink 10700")
-        self.write("CALL:HAND:PCR")
+        self.logger.info("############# UpLink Test Completed! #############")
 
-    def test_instrution(self):
-        self.write("CALL:CONNected:PICHannel:STATe:HSDPa OFF ")  # use state instrution to set OFF
+    def test_instruction(self):
+        self.write("CALL:OPERating:MODE CALL")
 
 
 if __name__ == "__main__":
+    # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，运行相关框架，执行事件监听
     test_case = WcdmaThroughput()
-    # test_case.case_all_uplink()
-    # test_case.case_all_downlink()
-    test_case.recall_dl_register()
+    test_case.case_all_downlink()
+    test_case.case_all_uplink()
+    # test_case.test_instruction()

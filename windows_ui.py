@@ -18,24 +18,18 @@ class AutoTestUI(wx.Frame):
         Call the parent's init
         """
         super(AutoTestUI, self).__init__(*args, **kw)
+        self.Center()
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
+        self.panel = wx.Panel(self)
 
-        self.title_text = wx.StaticText(self, -1, label="WCDMA吞吐量测试")
+        self.title_text = wx.StaticText(self, - 1, label="WCDMA吞吐量测试", style=wx.ALIGN_CENTER)
         font = self.title_text.GetFont()
         font.PointSize += 5
         font = font.Bold()
         self.title_text.SetFont(font)
 
-        self.output_text = wx.TextCtrl(self, -1, value="Output log...\n", style=wx.TE_READONLY | wx.TE_MULTILINE)
-
         self.band_text = wx.StaticText(self, -1, label="选择频段")
-        self.cable_loss_text = wx.StaticText(self, -1, label="设置衰减")
-
-        # text_control = wx.TextCtrl(self.input_panel, style=wx.TE_MULTILINE)
-        self.begin_test_button = wx.Button(self, -1, label="开始测试")
-        self.Bind(wx.EVT_BUTTON, self.on_begin_test, self.begin_test_button)
-
         self.bands = [
             [1, [10563, 10700, 10837]],  # band1
             [2, [9663, 9800, 9937]],  # band2
@@ -50,17 +44,53 @@ class AutoTestUI(wx.Frame):
         self.list_box.SetSelection(4)
         self.list_box.SetSelection(5)
 
+        self.cable_loss_text = wx.StaticText(self, -1, label="设置衰减")
+        self.freq1 = wx.StaticText(self, -1, label="频点")
+        self.att1 = wx.StaticText(self, -1, label="衰减")
+        self.freq2 = wx.StaticText(self, -1, label="频点")
+        self.att2 = wx.StaticText(self, -1, label="衰减")
+
+        self.freq_en_1 = wx.TextCtrl(self, -1, value="800.0")
+        self.att_en_1 = wx.TextCtrl(self, -1, value="-0.50")
+        self.freq_en_2 = wx.TextCtrl(self, -1, value="1800.0")
+        self.att_en_2 = wx.TextCtrl(self, -1, value="-0.80")
+
+        self.begin_test_button = wx.Button(self, -1, label="开始测试")
+        self.Bind(wx.EVT_BUTTON, self.on_begin_test, self.begin_test_button)
+
+        self.output_text = wx.TextCtrl(self, -1, value="Output log...\n", style=wx.TE_READONLY | wx.TE_MULTILINE)
+
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.title_text)
-        box.Add(self.band_text, wx.ALIGN_CENTER_HORIZONTAL)
-        box.Add(self.list_box, wx.ALIGN_CENTER_VERTICAL)
-        box.Add(self.cable_loss_text, wx.ALIGN_CENTER_VERTICAL)
-        box.Add(self.begin_test_button, wx.ALIGN_CENTER_VERTICAL)
-        box.Add(self.output_text, wx.GROW)
+        band_box = wx.BoxSizer(wx.HORIZONTAL)
+        band_box.Add(self.band_text)
+        band_box.Add(self.list_box, 1)
+        box.Add(band_box)
+
+        cable_loss_box = wx.BoxSizer(wx.HORIZONTAL)
+
+        cable_loss_box.Add(self.cable_loss_text)
+        loss_text_box = wx.BoxSizer(wx.VERTICAL)
+        loss_text_box.Add(self.freq1, 1, wx.EXPAND)
+        loss_text_box.Add(self.att1, 1, wx.EXPAND)
+        loss_text_box.Add(self.freq2, 1, wx.EXPAND)
+        loss_text_box.Add(self.att2, 1, wx.EXPAND)
+        cable_loss_box.Add(loss_text_box)
+
+        loss_en_box = wx.BoxSizer(wx.VERTICAL)
+        loss_en_box.Add(self.freq_en_1, 1)
+        loss_en_box.Add(self.att_en_1, 1)
+        loss_en_box.Add(self.freq_en_2, 1)
+        loss_en_box.Add(self.att_en_2, 1)
+        cable_loss_box.Add(loss_en_box)
+        box.Add(cable_loss_box)
+
+        box.Add(self.begin_test_button)
+        box.Add(self.output_text, 1, wx.EXPAND)
 
         self.SetSizer(box)
         self.SetAutoLayout(True)
-        # box.Fit(self)
+        box.Fit(self)
 
         self.make_menu_bar()
         self.CreateStatusBar()
@@ -177,6 +207,6 @@ class AutoTestUI(wx.Frame):
 if __name__ == '__main__':
     # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，运行相关框架，执行事件监听
     app = wx.App()
-    frame = AutoTestUI(None, title="AutoTest Platform")
+    frame = AutoTestUI(None, title="AutoTest Platform", size=(500, 500))
     frame.Show()
     app.MainLoop()

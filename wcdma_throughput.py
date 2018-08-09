@@ -9,7 +9,7 @@ import my_logging
 
 
 class WcdmaThroughput(object):
-    def __init__(self, test_bands):
+    def __init__(self, test_bands, cable_loss):
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
         self.local_time = time.strftime("%Y%m%d-%H%M%S")
@@ -30,6 +30,7 @@ class WcdmaThroughput(object):
             self.logger.error("无法识别GPIB设备！")
 
         self.bands = test_bands
+        self.cable_loss = cable_loss
         self.chip_set = "MTK"
 
     def write(self, command):
@@ -287,7 +288,8 @@ if __name__ == "__main__":
         [5, [4358, 4400, 4457]],  # band5
         [8, [2938, 3013, 3087]]  # band8
     ]
-    test_case = WcdmaThroughput(test_bands)
+    cable_loss = [(0,0),(0,0)]
+    test_case = WcdmaThroughput(test_bands,cable_loss)
     test_case.case_all_downlink()
     test_case.case_all_uplink()
     # test_case.test_instruction()

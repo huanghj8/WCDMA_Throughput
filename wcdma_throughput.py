@@ -78,11 +78,23 @@ class WcdmaThroughput(object):
     def save_result(self, filename, band, channel, result):
         self.logger.info('begin to save...')
         result_file = open(filename, "a")
-        result_file.writelines(str(self.local_time) + '\n')
         result_file.writelines(str(band) + '\t')
         result_file.writelines(str(channel) + '\t')
-        result_file.writelines(str(result) + '\n')
+        for i in result:
+            result_file.write(str(i) + '\t')
+        result_file.write('\n')
         result_file.close()
+
+    def process_result(self, filename):
+        txt_result_file = open(filename, 'a')
+        # 写入表头
+        
+        # 写入数据
+
+        # 保存文件
+
+        txt_result_file.close()
+        return txt_result_file
 
     def set_cable_loss(self, fre1=800.0, fre2=1800.0, att1=-0.50, att2=-0.80):
         self.write("SYST:CORR:STAT ON")
@@ -227,11 +239,11 @@ class WcdmaThroughput(object):
         time.sleep(5)
         transmit = self.query("CALL:HSDPa:MS:REPorted:BLOCks?")  # return blocks transmitted
         throughput = self.query("CALL:HSDPa:MS:REPorted:IBTHroughput?")  # return throughput
-        ber = self.query("CALL:HSDPa:MS:REPorted:HBLerror:RATio?")  # return BER
+        # ber = self.query("CALL:HSDPa:MS:REPorted:HBLerror:RATio?")  # return BER
         self.logger.info("transmit: " + str(transmit))
         self.logger.info("throughput: " + str(throughput))
-        self.logger.info("BER: " + str(ber))
-        return [transmit, throughput, ber]
+        # self.logger.info("BER: " + str(ber)) # 暂时不获取BER，保持与上行结果一致。后续再看需求
+        return [transmit, throughput]
 
     def get_uplink_result(self):
         self.write("SYST:MEAS:RES")
@@ -288,8 +300,8 @@ if __name__ == "__main__":
         [5, [4358, 4400, 4457]],  # band5
         [8, [2938, 3013, 3087]]  # band8
     ]
-    cable_loss = [(0,0),(0,0)]
-    test_case = WcdmaThroughput(test_bands,cable_loss)
+    cable_loss = [(0, 0), (0, 0)]
+    test_case = WcdmaThroughput(test_bands, cable_loss)
     test_case.case_all_downlink()
     test_case.case_all_uplink()
     # test_case.test_instruction()

@@ -74,6 +74,7 @@ class AutoTestUI(wx.Frame):
         self.output_text = wx.TextCtrl(self, -1, value="Output log...\n", style=wx.TE_READONLY | wx.TE_MULTILINE)
 
         box = wx.BoxSizer(wx.VERTICAL)
+
         box.Add(self.title_text, 0, wx.ALIGN_CENTER)
         parameter_box = wx.BoxSizer(wx.HORIZONTAL)
         parameter_box.Add(self.band_text, flag=wx.ALL, border=2)
@@ -155,10 +156,10 @@ class AutoTestUI(wx.Frame):
         # triggered from the keyboard.
         menu_bar = wx.MenuBar()
         menu_bar.Append(fileMenu, "&菜单")
-        menu_bar.Append(rf_menu, "&射频")
-        menu_bar.Append(base_band_menu, "&基带")
-        menu_bar.Append(specific_menu, '&专项')
-        menu_bar.Append(reliability_menu, '&可靠性')
+        # menu_bar.Append(rf_menu, "&射频")
+        # menu_bar.Append(base_band_menu, "&基带")
+        # menu_bar.Append(specific_menu, '&专项')
+        # menu_bar.Append(reliability_menu, '&可靠性')
         menu_bar.Append(helpMenu, "&帮助")
 
         self.SetMenuBar(menu_bar)
@@ -212,21 +213,24 @@ class AutoTestUI(wx.Frame):
         freq2 = self.cable_loss_grid.GetCellValue(1, 0)
         att2 = self.cable_loss_grid.GetCellValue(1, 1)
         cable_loss = [(freq1, att1), (freq2, att2)]
+        self.logger.info("cable loss: %s" % str(cable_loss))
 
         test_case = wcdma_throughput.WcdmaThroughput(test_bands, cable_loss)
         try:
             test_case.case_all_downlink()
             test_case.case_all_uplink()
         except Exception, e:
-            self.logger.error(str(Exception))
+            # self.logger.error(str(Exception))
             self.logger.error(e)
             self.logger.error("请检查仪器及GPIB连接！")
+            # self.my_logging.error("请检查仪器及GPIB连接")
+            self.title_text.SetLabel("测试错误！")
 
 
 if __name__ == '__main__':
     # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，运行相关框架，执行事件监听
     app = wx.App()
-    frame = AutoTestUI(None, title="AutoTest Platform", size=(600, 800))
+    frame = AutoTestUI(None, title="WCDMA Throughput", size=(600, 600))
     frame.Show()
     logging.basicConfig(stream=frame)
     app.MainLoop()

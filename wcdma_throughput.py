@@ -4,7 +4,11 @@
 # 手机需关闭数据业务开关，否则无法进入Connected状态，而进入PDP ACTIVE状态
 
 import time
+
+import os
 import visa
+import xlsxwriter
+
 import my_logging
 
 
@@ -13,7 +17,10 @@ class WcdmaThroughput(object):
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
         self.local_time = time.strftime("%Y%m%d-%H%M%S")
-
+        self.result_path = 'result'
+        if not os.path.exists(self.result_path):
+            os.makedirs(self.result_path)
+        self.txt_result = 'result\\result_%s.txt' % str(self.local_time)
         rm = visa.ResourceManager()
         self.logger.info(rm)
         self.logger.info(rm.list_resources())
@@ -83,17 +90,39 @@ class WcdmaThroughput(object):
         for i in result:
             result_file.write(str(i) + '\t')
         result_file.write('\n')
+        # result_file.writelines(str(result) + '\n')
         result_file.close()
 
-    def process_result(self, filename):
+    def process_result(self):
+        filename = self.txt_result
         txt_result_file = open(filename, 'a')
+        # 初始化表格
+        workbook = xlsxwriter.Workbook('result//result_%s.xlsx' % str(self.local_time))
+        worksheet = workbook.add_worksheet()
+        bold = workbook.add_format({'bold': 1})
+        result_file = open(filename)
+        lines = result_file.readlines()
+
         # 写入表头
-        
+        worksheet.write(0, 0, 'Band', bold)
+        worksheet.write(0, 1, 'Channel', bold)
+        worksheet.write(0, 2, 'Transmit block', bold)
+        worksheet.write(0, 3, 'Throughput/Kbps', bold)
+
         # 写入数据
+        row = 1
+        for line in lines:
+            result_list = line.split('\t')
+            for col in range(len(result_list)):
+                try:
+                    worksheet.write(row, col, float(result_list[col]))
+                except Exception, e:
+                    self.logger.info(e)
+            row += 1
 
         # 保存文件
-
         txt_result_file.close()
+        workbook.close()
         return txt_result_file
 
     def set_cable_loss(self, fre1=800.0, fre2=1800.0, att1=-0.50, att2=-0.80):
@@ -257,7 +286,7 @@ class WcdmaThroughput(object):
     def case_all_downlink(self):
         self.logger.info("#############  Begin to Test Downlink  #############")
         self.recall_dl_register()
-        filename = 'result\\result_%s.txt' % str(self.local_time)
+        filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
                 channel = band[1][i]
@@ -273,7 +302,7 @@ class WcdmaThroughput(object):
     def case_all_uplink(self):
         self.logger.info("#############  Begin to Test Uplink  #############")
         self.recall_ul_register()
-        filename = 'result\\result_%s.txt' % str(self.local_time)
+        filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
                 channel = band[1][i]
@@ -305,3 +334,4 @@ if __name__ == "__main__":
     test_case.case_all_downlink()
     test_case.case_all_uplink()
     # test_case.test_instruction()
+    test_case.process_result()

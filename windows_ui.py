@@ -215,11 +215,13 @@ class AutoTestUI(wx.Frame):
         cable_loss = [(freq1, att1), (freq2, att2)]
         self.logger.info("cable loss: %s" % str(cable_loss))
 
-        test_case = wcdma_throughput.WcdmaThroughput(test_bands, cable_loss)
         try:
             # test_case.case_all_downlink()
             # test_case.case_all_uplink()
-            test_case.run_all()
+            # 实例化线程并立即调用run()方法
+            wcdma_throughput.WcdmaThroughput(test_bands, cable_loss)
+            # test_case.run_all()
+            event.GetEventObject().Disable()
         except Exception, e:
             # self.logger.error(str(Exception))
             self.logger.error(e)

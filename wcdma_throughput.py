@@ -4,7 +4,7 @@
 # 手机需关闭数据业务开关，否则无法进入Connected状态，而进入PDP ACTIVE状态
 
 import time
-
+from threading import Thread
 import os
 import visa
 import xlsxwriter
@@ -12,8 +12,9 @@ import xlsxwriter
 import my_logging
 
 
-class WcdmaThroughput(object):
+class WcdmaThroughput(Thread):
     def __init__(self, test_bands, cable_loss):
+        super(WcdmaThroughput, self).__init__()
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
         self.local_time = time.strftime("%Y%m%d-%H%M%S")
@@ -39,6 +40,8 @@ class WcdmaThroughput(object):
         self.bands = test_bands
         self.cable_loss = cable_loss
         self.chip_set = "MTK"
+        # 线程实例化时立即启动
+        self.start()
 
     def write(self, command):
         self.my_instr.write(command)
@@ -321,11 +324,17 @@ class WcdmaThroughput(object):
 
         self.logger.info("############# UpLink Test Completed! #############")
 
-    def run_all(self):
+    # def run_all(self):
+    #     self.case_all_downlink()
+    #     self.case_all_uplink()
+    #     self.process_result()
+    #     self.logger.info("Test finish !")
+
+    def run(self):
         self.case_all_downlink()
         self.case_all_uplink()
         self.process_result()
-        self.logger.info("Test finish !")
+        self.logger.info("Test finish!")
 
 
 if __name__ == "__main__":

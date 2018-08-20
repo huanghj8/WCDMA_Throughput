@@ -217,8 +217,9 @@ class AutoTestUI(wx.Frame):
 
         test_case = wcdma_throughput.WcdmaThroughput(test_bands, cable_loss)
         try:
-            test_case.case_all_downlink()
-            test_case.case_all_uplink()
+            # test_case.case_all_downlink()
+            # test_case.case_all_uplink()
+            test_case.run_all()
         except Exception, e:
             # self.logger.error(str(Exception))
             self.logger.error(e)

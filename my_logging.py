@@ -23,10 +23,10 @@ class MyLogging(object):
         self.local_time = time.strftime("%Y%m%d-%H%M%S")
         # abandon cosole handler
         # self.console_handler = logging.StreamHandler()
-        self.path = 'result\log\Testlog_%s.log' % self.local_time
+        self.path = 'result\log'
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-        self.file_handler = logging.FileHandler(self.path)
+        self.file_handler = logging.FileHandler('result\log\Testlog_%s.log' % self.local_time)
         self.color_handler = RainbowLoggingHandler(sys.stderr, color_funcName=('black', 'yellow', True))
 
     def get_logger(self):

@@ -88,20 +88,23 @@ class WcdmaThroughput(object):
         result_file.writelines(str(band) + '\t')
         result_file.writelines(str(channel) + '\t')
         for i in result:
-            result_file.write(str(i) + '\t')
+            result_file.write(str(float(i)) + '\t')
         result_file.write('\n')
         # result_file.writelines(str(result) + '\n')
         result_file.close()
 
     def process_result(self):
         filename = self.txt_result
-        txt_result_file = open(filename, 'a')
+        # filename = 'result/result_20180820-103619.txt'
+        txt_result_file = open(filename)
+        # txt_result_file.seek(0, 0)
         # 初始化表格
         workbook = xlsxwriter.Workbook('result//result_%s.xlsx' % str(self.local_time))
         worksheet = workbook.add_worksheet()
         bold = workbook.add_format({'bold': 1})
-        result_file = open(filename)
-        lines = result_file.readlines()
+        # result_file = open(filename, 'a')
+        lines = txt_result_file.readlines()
+        # print lines
 
         # 写入表头
         worksheet.write(0, 0, 'Band', bold)
@@ -115,9 +118,11 @@ class WcdmaThroughput(object):
             result_list = line.split('\t')
             for col in range(len(result_list)):
                 try:
-                    worksheet.write(row, col, float(result_list[col]))
+                    # 换行符作为一行循环结束的标志
+                    if result_list[col] != '\n':
+                        worksheet.write(row, col, float(result_list[col]))
                 except Exception, e:
-                    self.logger.info(e)
+                    self.logger.error(e)
             row += 1
 
         # 保存文件
@@ -316,12 +321,17 @@ class WcdmaThroughput(object):
 
         self.logger.info("############# UpLink Test Completed! #############")
 
-    def test_instruction(self):
-        self.write("CALL:OPERating:MODE CALL")
+    def run_all(self):
+        self.case_all_downlink()
+        self.case_all_uplink()
+        self.process_result()
+        self.logger.info("Test finish !")
 
 
 if __name__ == "__main__":
     # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，运行相关框架，执行事件监听
+
+    # 调试用的测试频段
     test_bands = [
         [1, [10563, 10700, 10837]],  # band1
         # [2, [9663, 9800, 9937]],  # band2
@@ -331,7 +341,7 @@ if __name__ == "__main__":
     ]
     cable_loss = [(0, 0), (0, 0)]
     test_case = WcdmaThroughput(test_bands, cable_loss)
-    test_case.case_all_downlink()
-    test_case.case_all_uplink()
+    # test_case.case_all_downlink()
+    # test_case.case_all_uplink()
     # test_case.test_instruction()
     test_case.process_result()

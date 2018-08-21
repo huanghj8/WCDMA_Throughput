@@ -68,6 +68,11 @@ class AutoTestUI(wx.Frame):
         self.cable_loss_grid.SetColLabelValue(1, '衰减/dB')
         self.cable_loss_grid.HideRowLabels()
 
+        # self.chip = wx.StaticText(self,-1,label = "芯片平台")
+        self.chip_list = ['MTK', 'QUALCOMM']
+        self.chip_box = wx.RadioBox(self, -1, '芯片平台选择', (50, 150), (200, 20), self.chip_list, 2, wx.RA_SPECIFY_ROWS)
+        self.chip_box.Bind(wx.EVT_RADIOBOX, self.on_select_chip)
+
         self.begin_test_button = wx.Button(self, -1, label="开始测试")
         self.Bind(wx.EVT_BUTTON, self.on_begin_test, self.begin_test_button)
 
@@ -81,6 +86,7 @@ class AutoTestUI(wx.Frame):
         parameter_box.Add(self.list_box, 1, flag=wx.ALL, border=2)
         parameter_box.Add(self.cable_loss_text, flag=wx.ALL, border=2)
         parameter_box.Add(self.cable_loss_grid, 1, flag=wx.ALL, border=2)
+        parameter_box.Add(self.chip_box, 1, flag=wx.ALL, border=2)
         box.Add(parameter_box, flag=wx.ALL, border=15)
 
         # para_box = wx.BoxSizer(wx.HORIZONTAL)
@@ -200,6 +206,10 @@ class AutoTestUI(wx.Frame):
     def set_cable_loss(self):
         pass
 
+    def on_select_chip(self, event):
+        self.logger.info("The chipset is: %s" % self.chip_box.GetStringSelection())
+        # print self.chip_box.GetSelection()
+
     def on_begin_test(self, event):
         self.begin_test_button.SetLabel("测试中。。")
         self.title_text.SetLabel("测试中。。。")
@@ -214,12 +224,14 @@ class AutoTestUI(wx.Frame):
         att2 = self.cable_loss_grid.GetCellValue(1, 1)
         cable_loss = [(freq1, att1), (freq2, att2)]
         self.logger.info("cable loss: %s" % str(cable_loss))
+        chip_set = self.chip_box.GetStringSelection()
+        self.logger.info("The chipset is: %s" % chip_set)
 
         try:
             # test_case.case_all_downlink()
             # test_case.case_all_uplink()
             # 实例化线程并立即调用run()方法
-            wcdma_throughput.WcdmaThroughput(test_bands, cable_loss)
+            wcdma_throughput.WcdmaThroughput(test_bands, cable_loss, chip_set)
             # test_case.run_all()
             event.GetEventObject().Disable()
         except Exception, e:

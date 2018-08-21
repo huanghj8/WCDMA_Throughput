@@ -13,7 +13,7 @@ import my_logging
 
 
 class WcdmaThroughput(Thread):
-    def __init__(self, test_bands, cable_loss):
+    def __init__(self, test_bands, cable_loss, chip_set):
         super(WcdmaThroughput, self).__init__()
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
@@ -39,7 +39,7 @@ class WcdmaThroughput(Thread):
 
         self.bands = test_bands
         self.cable_loss = cable_loss
-        self.chip_set = "MTK"
+        self.chip_set = chip_set
         # 线程实例化时立即启动
         self.start()
 
@@ -82,11 +82,14 @@ class WcdmaThroughput(Thread):
     def init_logging(self):
         pass
 
-    def create_file(self):
-        pass
+    def set_chipset_platform(self):
+        if self.chip_set == 'MTK':
+            self.write('CALL:CELL:RLC:REEStablish AUTO')
+        elif self.chip_set == 'QUALCOMM':
+            self.write('CALL:CELL:RLC:REEStablish OFF')
 
     def save_result(self, filename, band, channel, result):
-        self.logger.info('begin to save...')
+        self.logger.info('Save result...')
         result_file = open(filename, "a")
         result_file.writelines(str(band) + '\t')
         result_file.writelines(str(channel) + '\t')
@@ -176,8 +179,8 @@ class WcdmaThroughput(Thread):
         self.logger.info("set Authentication code")
         self.write("CALL:SECurity:AUTHenticate:KEY " +
                    "'000102030405060708090A0B0C0D0E0F'")
-        # set RRC Reesablish to Auto for MTK, and Off for QC
-        if self.chip_set == "QC":
+        # set RRC Reesablish to Auto for MTK, and Off for QUALCOMM
+        if self.chip_set == "QUALCOMM":
             self.write("CALL:CELL:RLC:REEStablish OFF")
         else:
             self.write("CALL:CELL:RLC:REEStablish AUTO")
@@ -261,6 +264,7 @@ class WcdmaThroughput(Thread):
         self.reset()
         self.set_cable_loss()
         self.write("SYSTem:REGister:RECall 6")
+        self.set_chipset_platform()
         self.active_cell()
         self.originate_call()
 
@@ -268,8 +272,20 @@ class WcdmaThroughput(Thread):
         self.reset()
         self.set_cable_loss()
         self.write("SYSTem:REGister:RECall 10")
+        self.set_chipset_platform()
         self.active_cell()
         self.originate_call()
+
+    def set_downlink_speed(self):
+        # TODO：设置下行速率，支持DC则为42M，不支持则为21M
+        self.write("")
+
+    def set_uplink_speed(self, qam16):
+        # TODO: 设置上行速率，支持16QAM为11.4M，不支持则为5.7M
+        if qam16 == 'support':
+            self.write("CALL:HSUPa:EDCHannel:QAM16 ON")
+        else:
+            self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
 
     def get_downlink_result(self):
         self.write("SYST:MEAS:RES")  # Reset measurement
@@ -284,7 +300,7 @@ class WcdmaThroughput(Thread):
 
     def get_uplink_result(self):
         self.write("SYST:MEAS:RES")
-        time.sleep(5)
+        time.sleep(10)
         transmit = self.query("CALL:STATus:EHIChannel:ACK?")
         throughput = self.query("CALL:STATus:EDCHannel:IBTHroughput?")
         self.logger.info("transmit: " + str(transmit))
@@ -349,7 +365,8 @@ if __name__ == "__main__":
         [8, [2938, 3013, 3087]]  # band8
     ]
     cable_loss = [(0, 0), (0, 0)]
-    test_case = WcdmaThroughput(test_bands, cable_loss)
+    chip_set = 'MTK'
+    test_case = WcdmaThroughput(test_bands, cable_loss, chip_set)
     # test_case.case_all_downlink()
     # test_case.case_all_uplink()
     # test_case.test_instruction()

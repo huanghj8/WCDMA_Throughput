@@ -13,7 +13,7 @@ import my_logging
 
 
 class WcdmaThroughput(Thread):
-    def __init__(self, test_bands, cable_loss, chip_set):
+    def __init__(self, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed):
         super(WcdmaThroughput, self).__init__()
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
@@ -40,6 +40,8 @@ class WcdmaThroughput(Thread):
         self.bands = test_bands
         self.cable_loss = cable_loss
         self.chip_set = chip_set
+        self.downlink_speed = downlink_speed
+        self.uplink_speed = uplink_speed
         # 线程实例化时立即启动
         self.start()
 
@@ -278,20 +280,20 @@ class WcdmaThroughput(Thread):
         self.active_cell()
         self.originate_call()
 
-    def set_downlink_speed(self, speed='42M'):
+    def set_downlink_speed(self):
         # TODO：设置下行速率，支持DC则为42M，不支持则为21M
-        if speed == '42M':
+        if self.downlink_speed == '42M':
             self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa ON")
             self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback ON")
-        else:
+        elif self.downlink_speed == '21M':
             self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa OFF")
             self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback OFF")
 
-    def set_uplink_speed(self, speed='11.4M'):
+    def set_uplink_speed(self):
         # TODO: 设置上行速率，支持16QAM为11.4M，不支持则为5.7M
-        if speed == '11.4M':
+        if self.uplink_speed == '11.4M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 ON")
-        elif speed == '5.7M':
+        elif self.uplink_speed == '5.7M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
 
     def get_downlink_result(self):
@@ -373,8 +375,10 @@ if __name__ == "__main__":
     ]
     cable_loss = [(0, 0), (0, 0)]
     chip_set = 'MTK'
-    test_case = WcdmaThroughput(test_bands, cable_loss, chip_set)
+    down_sp = '42M'
+    up_sp = '11.4M'
+    test_case = WcdmaThroughput(test_bands, cable_loss, chip_set, down_sp, up_sp)
     # test_case.case_all_downlink()
     # test_case.case_all_uplink()
     # test_case.test_instruction()
-    test_case.process_result()
+    # test_case.process_result()

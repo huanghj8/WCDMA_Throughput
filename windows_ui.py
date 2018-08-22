@@ -70,23 +70,27 @@ class AutoTestUI(wx.Frame):
 
         # self.chip = wx.StaticText(self,-1,label = "芯片平台")
         self.chip_list = ['MTK', 'QUALCOMM']
-        self.chip_box = wx.RadioBox(self, -1, '芯片平台选择', (50, 150), (200, 20),
-                                    self.chip_list, wx.RA_SPECIFY_COLS)
+        self.chip_box = wx.RadioBox(self, -1, '芯片平台', pos=(0, 0),
+                                    choices=self.chip_list, style=wx.RA_SPECIFY_COLS)
         self.chip_box.Bind(wx.EVT_RADIOBOX, self.on_select_chip)
 
         self.downlink_speed = ['42M', '21M']
-        self.dl_sp_box = wx.RadioBox(self, -1, '下行速率', (50, 150), (200, 20),
-                                     self.downlink_speed, wx.RA_SPECIFY_COLS)
+        self.dl_sp_box = wx.RadioBox(self, -1, '下行速率', pos=(0, 0),
+                                    choices=self.downlink_speed, style=wx.RA_SPECIFY_COLS)
+        self.dl_sp_box.Bind(wx.EVT_RADIOBOX, self.on_select_down_speed)
 
         self.uplink_speed = ['11.4M', '5.7M']
-        self.ul_sp_box = wx.RadioBox(self, -1, '上行速率', (50, 150), (200, 20),
-                                     self.uplink_speed, wx.RA_SPECIFY_COLS)
+        self.ul_sp_box = wx.RadioBox(self, -1, '上行速率', pos=(0, 0),
+                                    choices=self.uplink_speed, style=wx.RA_SPECIFY_COLS)
+        self.ul_sp_box.Bind(wx.EVT_RADIOBOX, self.on_select_up_speed)
+
         self.begin_test_button = wx.Button(self, -1, label="开始测试")
         self.Bind(wx.EVT_BUTTON, self.on_begin_test, self.begin_test_button)
 
         self.output_text = wx.TextCtrl(self, -1, value="Output log...\n", style=wx.TE_READONLY | wx.TE_MULTILINE)
 
         box = wx.BoxSizer(wx.VERTICAL)
+        # box.Add(self.panel, wx.EXPAND)
 
         box.Add(self.title_text, 0, wx.ALIGN_CENTER)
 
@@ -97,9 +101,9 @@ class AutoTestUI(wx.Frame):
         parameter_box.Add(self.cable_loss_grid, 1, flag=wx.ALL, border=2)
 
         speed_box = wx.BoxSizer(wx.VERTICAL)
-        speed_box.Add(self.chip_box, 1, flag=wx.ALL, border=15)
-        speed_box.Add(self.dl_sp_box, 1, flag=wx.ALL, border=15)
-        speed_box.Add(self.ul_sp_box, 1, flag=wx.ALL, border=15)
+        speed_box.Add(self.chip_box)
+        speed_box.Add(self.dl_sp_box)
+        speed_box.Add(self.ul_sp_box)
 
         parameter_box.Add(speed_box, 1, flag=wx.ALL, border=2)
 
@@ -226,6 +230,12 @@ class AutoTestUI(wx.Frame):
         self.logger.info("The chipset is: %s" % self.chip_box.GetStringSelection())
         # print self.chip_box.GetSelection()
 
+    def on_select_down_speed(self, event):
+        self.logger.info('Downlink speed is: %s' % self.dl_sp_box.GetStringSelection())
+
+    def on_select_up_speed(self, event):
+        self.logger.info('Uplink speed is: %s' % self.ul_sp_box.GetStringSelection())
+
     def on_begin_test(self, event):
         self.begin_test_button.SetLabel("测试中。。")
         self.title_text.SetLabel("测试中。。。")
@@ -242,12 +252,16 @@ class AutoTestUI(wx.Frame):
         self.logger.info("cable loss: %s" % str(cable_loss))
         chip_set = self.chip_box.GetStringSelection()
         self.logger.info("The chipset is: %s" % chip_set)
+        downlink_speed = self.dl_sp_box.GetStringSelection()
+        self.logger.info("Downlink Speed is: %s" % downlink_speed)
+        uplink_speed = self.ul_sp_box.GetStringSelection()
+        self.logger.info("Uplink Speed is: %s" % uplink_speed)
 
         try:
             # test_case.case_all_downlink()
             # test_case.case_all_uplink()
             # 实例化线程并立即调用run()方法
-            wcdma_throughput.WcdmaThroughput(test_bands, cable_loss, chip_set)
+            wcdma_throughput.WcdmaThroughput(test_bands, cable_loss, chip_set, downlink_speed, uplink_speed)
             # test_case.run_all()
             event.GetEventObject().Disable()
         except Exception, e:

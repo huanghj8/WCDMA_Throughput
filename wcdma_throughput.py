@@ -280,7 +280,12 @@ class WcdmaThroughput(Thread):
 
     def set_downlink_speed(self, speed='42M'):
         # TODO：设置下行速率，支持DC则为42M，不支持则为21M
-        self.write("")
+        if speed == '42M':
+            self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa ON")
+            self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback ON")
+        else:
+            self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa OFF")
+            self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback OFF")
 
     def set_uplink_speed(self, speed='11.4M'):
         # TODO: 设置上行速率，支持16QAM为11.4M，不支持则为5.7M

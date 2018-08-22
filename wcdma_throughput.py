@@ -265,6 +265,7 @@ class WcdmaThroughput(Thread):
         self.set_cable_loss()
         self.write("SYSTem:REGister:RECall 6")
         self.set_chipset_platform()
+        self.set_downlink_speed()
         self.active_cell()
         self.originate_call()
 
@@ -273,18 +274,19 @@ class WcdmaThroughput(Thread):
         self.set_cable_loss()
         self.write("SYSTem:REGister:RECall 10")
         self.set_chipset_platform()
+        self.set_uplink_speed()
         self.active_cell()
         self.originate_call()
 
-    def set_downlink_speed(self):
+    def set_downlink_speed(self, speed='42M'):
         # TODO：设置下行速率，支持DC则为42M，不支持则为21M
         self.write("")
 
-    def set_uplink_speed(self, qam16):
+    def set_uplink_speed(self, speed='11.4M'):
         # TODO: 设置上行速率，支持16QAM为11.4M，不支持则为5.7M
-        if qam16 == 'support':
+        if speed == '11.4M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 ON")
-        else:
+        elif speed == '5.7M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
 
     def get_downlink_result(self):

@@ -70,9 +70,17 @@ class AutoTestUI(wx.Frame):
 
         # self.chip = wx.StaticText(self,-1,label = "芯片平台")
         self.chip_list = ['MTK', 'QUALCOMM']
-        self.chip_box = wx.RadioBox(self, -1, '芯片平台选择', (50, 150), (200, 20), self.chip_list, 2, wx.RA_SPECIFY_ROWS)
+        self.chip_box = wx.RadioBox(self, -1, '芯片平台选择', (50, 150), (200, 20),
+                                    self.chip_list, wx.RA_SPECIFY_COLS)
         self.chip_box.Bind(wx.EVT_RADIOBOX, self.on_select_chip)
 
+        self.downlink_speed = ['42M', '21M']
+        self.dl_sp_box = wx.RadioBox(self, -1, '下行速率', (50, 150), (200, 20),
+                                     self.downlink_speed, wx.RA_SPECIFY_COLS)
+
+        self.uplink_speed = ['11.4M', '5.7M']
+        self.ul_sp_box = wx.RadioBox(self, -1, '上行速率', (50, 150), (200, 20),
+                                     self.uplink_speed, wx.RA_SPECIFY_COLS)
         self.begin_test_button = wx.Button(self, -1, label="开始测试")
         self.Bind(wx.EVT_BUTTON, self.on_begin_test, self.begin_test_button)
 
@@ -81,12 +89,20 @@ class AutoTestUI(wx.Frame):
         box = wx.BoxSizer(wx.VERTICAL)
 
         box.Add(self.title_text, 0, wx.ALIGN_CENTER)
+
         parameter_box = wx.BoxSizer(wx.HORIZONTAL)
         parameter_box.Add(self.band_text, flag=wx.ALL, border=2)
         parameter_box.Add(self.list_box, 1, flag=wx.ALL, border=2)
         parameter_box.Add(self.cable_loss_text, flag=wx.ALL, border=2)
         parameter_box.Add(self.cable_loss_grid, 1, flag=wx.ALL, border=2)
-        parameter_box.Add(self.chip_box, 1, flag=wx.ALL, border=2)
+
+        speed_box = wx.BoxSizer(wx.VERTICAL)
+        speed_box.Add(self.chip_box, 1, flag=wx.ALL, border=15)
+        speed_box.Add(self.dl_sp_box, 1, flag=wx.ALL, border=15)
+        speed_box.Add(self.ul_sp_box, 1, flag=wx.ALL, border=15)
+
+        parameter_box.Add(speed_box, 1, flag=wx.ALL, border=2)
+
         box.Add(parameter_box, flag=wx.ALL, border=15)
 
         # para_box = wx.BoxSizer(wx.HORIZONTAL)
@@ -245,7 +261,7 @@ class AutoTestUI(wx.Frame):
 if __name__ == '__main__':
     # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，运行相关框架，执行事件监听
     app = wx.App()
-    frame = AutoTestUI(None, title="WCDMA Throughput", size=(600, 600))
+    frame = AutoTestUI(None, title="WCDMA Throughput", size=(620, 600))
     frame.Show()
     logging.basicConfig(stream=frame)
     app.MainLoop()

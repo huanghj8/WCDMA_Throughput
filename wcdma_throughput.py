@@ -307,7 +307,7 @@ class WcdmaThroughput(Thread):
         time.sleep(1)
 
         # origin call
-        i = 3
+        i = 20
         while i > 0:
             self.write("CALL:ORIGinate")
             self.logger.info("wait for connect...")

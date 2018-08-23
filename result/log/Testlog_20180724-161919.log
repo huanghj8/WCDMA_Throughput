@@ -1,4 +1,0 @@
-2018-07-24 16:19:19,269 wcdma_throughput.py[line:18] INFO Resource Manager of Visa Library at C:\Windows\system32\visa32.dll
-2018-07-24 16:19:19,377 wcdma_throughput.py[line:19] INFO (u'GPIB0::15::INSTR', u'ASRL6::INSTR')
-2018-07-24 16:19:19,391 wcdma_throughput.py[line:22] INFO Agilent Technologies,8960 Series 10 E5515E,MY52111006,I.01.09
-

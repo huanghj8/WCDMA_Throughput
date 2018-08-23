@@ -1,4 +1,3 @@
-# coding=utf-8
 # -*- coding: utf-8 -*-
 # 用于测试WCDMA物理层上下行吞吐量,8960 Application当前为Fast Switch Lab App
 # 手机需关闭数据业务开关，否则无法进入Connected状态，而进入PDP ACTIVE状态
@@ -13,7 +12,19 @@ import my_logging
 
 
 class WcdmaThroughput(Thread):
+    """
+    WCDMA物理层吞吐量测试线程
+    """
+
     def __init__(self, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed):
+        """
+        初始化参数
+        :param test_bands:测试频段
+        :param cable_loss: 线损
+        :param chip_set: 芯片平台
+        :param downlink_speed: DUT下行速率
+        :param uplink_speed: DUT上行速率
+        """
         super(WcdmaThroughput, self).__init__()
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
@@ -42,24 +53,44 @@ class WcdmaThroughput(Thread):
         self.chip_set = chip_set
         self.downlink_speed = downlink_speed
         self.uplink_speed = uplink_speed
+
         # 线程实例化时立即启动
         self.start()
 
     def write(self, command):
+        """
+        向仪表发送执行指令
+        :param command: SCPI语句
+        :return: None
+        """
         self.my_instr.write(command)
 
     def query(self, command):
+        """
+        向仪表发送执行指令，并获取返回值
+        :param command: SCPI语句
+        :return: 执行结果
+        """
         return self.my_instr.query(command)
 
     def read(self):
+        """
+        获取仪表当前状态值
+        :return: 当前状态
+        """
         return self.my_instr.read()
 
     def handover(self, channel, band=1, channel_type="low/mid"):
+        """
+        信道切换方法
+        :param channel: 目标信道
+        :param band: 目标频段
+        :param channel_type: 信道类型，即低中高
+        :return: None
+        """
         if channel:
             self.logger.info("band: %s, channel: %s", str(band), str(channel))
             self.write("CALL:SETup:CHANnel:DOWNlink %s" % str(channel))
-            # self.write("CALL:SETup:CHANnel:DOWNlink %s" % str(channel))
-        # print self.read()
         if band == 5:
             self.write("CALL:SETup:CHANnel:BARBitrator BAND5")
         if channel_type == "high":
@@ -69,7 +100,8 @@ class WcdmaThroughput(Thread):
 
         self.write("CALL:HAND:PCR")
         time.sleep(2)
-        i = 3
+        # 查询状态循环次数为5，避免程序卡住，并保留足够的手动连接时间
+        i = 5
         while i > 0:
             self.write("CALL:STAT?")
             status = str(self.read())
@@ -81,16 +113,25 @@ class WcdmaThroughput(Thread):
                 time.sleep(2)
                 i -= 1
 
-    def init_logging(self):
-        pass
-
     def set_chipset_platform(self):
+        """
+        根据芯片平台设置RLC reestablish状态
+        :return: None
+        """
         if self.chip_set == 'MTK':
             self.write('CALL:CELL:RLC:REEStablish AUTO')
         elif self.chip_set == 'QUALCOMM':
             self.write('CALL:CELL:RLC:REEStablish OFF')
 
     def save_result(self, filename, band, channel, result):
+        """
+        保存数据为文本格式
+        :param filename: 文本路径
+        :param band: 频段
+        :param channel: 信道
+        :param result: 吞吐量即传输块结果
+        :return: None
+        """
         self.logger.info('Save result...')
         result_file = open(filename, "a")
         result_file.writelines(str(band) + '\t')
@@ -98,21 +139,21 @@ class WcdmaThroughput(Thread):
         for i in result:
             result_file.write(str(float(i)) + '\t')
         result_file.write('\n')
-        # result_file.writelines(str(result) + '\n')
         result_file.close()
 
     def process_result(self):
+        """
+        数据处理，输出Excel报告
+        :return: None
+        """
         filename = self.txt_result
-        # filename = 'result/result_20180820-103619.txt'
         txt_result_file = open(filename)
-        # txt_result_file.seek(0, 0)
+
         # 初始化表格
         workbook = xlsxwriter.Workbook('result//result_%s.xlsx' % str(self.local_time))
         worksheet = workbook.add_worksheet()
         bold = workbook.add_format({'bold': 1})
-        # result_file = open(filename, 'a')
         lines = txt_result_file.readlines()
-        # print lines
 
         # 写入表头
         worksheet.write(0, 0, 'Band', bold)
@@ -136,25 +177,45 @@ class WcdmaThroughput(Thread):
         # 保存文件
         txt_result_file.close()
         workbook.close()
-        return txt_result_file
 
     def set_cable_loss(self, fre1=800.0, fre2=1800.0, att1=-0.50, att2=-0.80):
+        """
+        设置衰减值
+        :param fre1:频点1
+        :param fre2: 频点2
+        :param att1: 衰减值1
+        :param att2: 衰减值2
+        :return: None
+        """
         self.write("SYST:CORR:STAT ON")
         self.write("SYSTEM:CORRECTION:FREQUENCY %s MHZ,%s MHZ" % (str(fre1), str(fre2)))
         self.write("SYSTEM:CORRECTION:GAIN %s,%s" % (str(att1), str(att2)))
 
     def reset(self):
+        """
+        仪表重置命令
+        :return: None
+        """
         self.write("*RST")
 
     def active_cell(self):
+        """
+        激活小区的命令
+        :return: None
+        """
         self.write("CALL:OPERating:MODE CALL")
         time.sleep(1)
 
     def originate_call(self):
-
+        """
+        发起建立通话命令，并查询状态，直至连接状态为Connected
+        :return: None
+        """
+        # 循环100次尝试，在这期间可以手动开关DUT飞行模式，以便更快注册上网络
         i = 100
         while i > 0:
             self.write("CALL:ORIGinate")
+            # 等待5s再查询状态
             time.sleep(5)
             self.write("CALL:STAT?")
             status = str(self.read())
@@ -163,13 +224,14 @@ class WcdmaThroughput(Thread):
                 break
             else:
                 self.logger.info("wait for connect... try time: %d" % (101 - i))
+                self.logger.info("Try to turn on flight mode and turn off")
                 time.sleep(2)
                 i -= 1
 
     def set_downlink_environment(self):
         """
-        配置下行吞吐量测试环境
-        :return: null
+        配置下行吞吐量测试环境,手册未查找到配置E6.2.3.4表的指令，因此换用调用注册表方式。后续完善。
+        :return: None
         """
         # preset
         self.logger.info("preset")
@@ -260,28 +322,44 @@ class WcdmaThroughput(Thread):
                 i -= 1
 
     def set_uplink_environment(self):
+        """
+        配置上行吞吐量环境，目前使用注册表配置，后续根据需求再更新
+        :return: None
+        """
+        self.reset()
         self.set_cable_loss()
 
     def recall_dl_register(self):
+        """
+        调用仪器PHY42M注册表的方式配置，后续改为逐一配置指令
+        :return: None
+        """
         self.reset()
-        self.set_cable_loss()
         self.write("SYSTem:REGister:RECall 6")
+        self.set_cable_loss()
         self.set_chipset_platform()
         self.set_downlink_speed()
         self.active_cell()
         self.originate_call()
 
     def recall_ul_register(self):
+        """
+        调用仪器PHY11M注册表的方式配置，后续改为逐一配置指令
+        :return:
+        """
         self.reset()
-        self.set_cable_loss()
         self.write("SYSTem:REGister:RECall 10")
+        self.set_cable_loss()
         self.set_chipset_platform()
         self.set_uplink_speed()
         self.active_cell()
         self.originate_call()
 
     def set_downlink_speed(self):
-        # TODO：设置下行速率，支持DC则为42M，不支持则为21M
+        """
+         设置下行速率，支持DC则为42M，不支持则为21M
+        :return: None
+        """
         if self.downlink_speed == '42M':
             self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa ON")
             self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback ON")
@@ -290,13 +368,20 @@ class WcdmaThroughput(Thread):
             self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback OFF")
 
     def set_uplink_speed(self):
-        # TODO: 设置上行速率，支持16QAM为11.4M，不支持则为5.7M
+        """
+        设置上行速率，支持16QAM为11.4M，不支持则为5.7M
+        :return: None
+        """
         if self.uplink_speed == '11.4M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 ON")
         elif self.uplink_speed == '5.7M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
 
     def get_downlink_result(self):
+        """
+        获取下行传输块、吞吐量结果
+        :return: 包含传输块、吞吐量的列表
+        """
         self.write("SYST:MEAS:RES")  # Reset measurement
         time.sleep(5)
         transmit = self.query("CALL:HSDPa:MS:REPorted:BLOCks?")  # return blocks transmitted
@@ -308,6 +393,10 @@ class WcdmaThroughput(Thread):
         return [transmit, throughput]
 
     def get_uplink_result(self):
+        """
+        获取下行传输块、吞吐量结果
+        :return: 包含传输块、吞吐量的列表
+        """
         self.write("SYST:MEAS:RES")
         time.sleep(10)
         transmit = self.query("CALL:STATus:EHIChannel:ACK?")
@@ -317,6 +406,10 @@ class WcdmaThroughput(Thread):
         return [transmit, throughput]
 
     def case_all_downlink(self):
+        """
+        遍历所有信道的下行测试，记录于结果文本
+        :return: None
+        """
         self.logger.info("#############  Begin to Test Downlink  #############")
         self.recall_dl_register()
         filename = self.txt_result
@@ -333,6 +426,10 @@ class WcdmaThroughput(Thread):
         self.logger.info("############# DownLink Test Completed! ###########")
 
     def case_all_uplink(self):
+        """
+        遍历所有信道的上行测试，记录于结果文本
+        :return: None
+        """
         self.logger.info("#############  Begin to Test Uplink  #############")
         self.recall_ul_register()
         filename = self.txt_result
@@ -349,13 +446,11 @@ class WcdmaThroughput(Thread):
 
         self.logger.info("############# UpLink Test Completed! #############")
 
-    # def run_all(self):
-    #     self.case_all_downlink()
-    #     self.case_all_uplink()
-    #     self.process_result()
-    #     self.logger.info("Test finish !")
-
     def run(self):
+        """
+        线程的run方法，实例化后立即运行
+        :return: None
+        """
         self.case_all_downlink()
         self.case_all_uplink()
         self.process_result()
@@ -363,13 +458,11 @@ class WcdmaThroughput(Thread):
 
 
 if __name__ == "__main__":
-    # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，运行相关框架，执行事件监听
+    # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，主要用于调试
 
-    # 调试用的测试频段
+    # 调试用的配置参数
     test_bands = [
         [1, [10563, 10700, 10837]],  # band1
-        # [2, [9663, 9800, 9937]],  # band2
-        # [4, [1538, 1675, 1737]],  # band4
         [5, [4358, 4400, 4457]],  # band5
         [8, [2938, 3013, 3087]]  # band8
     ]
@@ -377,8 +470,6 @@ if __name__ == "__main__":
     chip_set = 'MTK'
     down_sp = '42M'
     up_sp = '11.4M'
+
     test_case = WcdmaThroughput(test_bands, cable_loss, chip_set, down_sp, up_sp)
-    # test_case.case_all_downlink()
-    # test_case.case_all_uplink()
-    # test_case.test_instruction()
-    # test_case.process_result()
+

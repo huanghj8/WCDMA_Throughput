@@ -38,11 +38,16 @@ class WcdmaThroughput(Thread):
         self.logger.info(rm.list_resources())
 
         try:
-            self.my_instr = rm.open_resource('GPIB0::15::INSTR')
+            self.instrument = rm.list_resources()[0]
+            self.logger.info("选择设备列表第一个仪器，请确保只有一个串口设备连接")
+            self.logger.info('Try to connect instrument, address: %s' % self.instrument)
+            self.my_instr = rm.open_resource(self.instrument)
             query = self.my_instr.query("*IDN?")
             self.logger.info("Query result: %s" % str(query))
             if query == "":
                 self.logger.error("无法连接至8960！")
+            else:
+                self.logger.info("连接成功！")
         except Exception, e:
             self.logger.error(str(Exception))
             self.logger.error(e)
@@ -472,4 +477,3 @@ if __name__ == "__main__":
     up_sp = '11.4M'
 
     test_case = WcdmaThroughput(test_bands, cable_loss, chip_set, down_sp, up_sp)
-

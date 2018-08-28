@@ -211,11 +211,11 @@ class TestUI(wx.Frame):
         for index in list_index:
             test_bands.append(self.bands[index])
         self.logger.info("test_bands: %s" % str(test_bands))
-        # 更新衰减档
-        freq1 = self.cable_loss_grid.GetCellValue(0, 0)
-        att1 = self.cable_loss_grid.GetCellValue(0, 1)
-        freq2 = self.cable_loss_grid.GetCellValue(1, 0)
-        att2 = self.cable_loss_grid.GetCellValue(1, 1)
+        # 更新衰减档,频率值保留一位小数，衰减值保留两位，否则8960无法识别会报错
+        freq1 = '%.1f' % float(self.cable_loss_grid.GetCellValue(0, 0))
+        att1 = '%.2f' % float(self.cable_loss_grid.GetCellValue(0, 1))
+        freq2 = '%.1f' % float(self.cable_loss_grid.GetCellValue(1, 0))
+        att2 = '%.2f' % float(self.cable_loss_grid.GetCellValue(1, 1))
         cable_loss = [(freq1, att1), (freq2, att2)]
         self.logger.info("cable loss: %s" % str(cable_loss))
         # 更新芯片平台

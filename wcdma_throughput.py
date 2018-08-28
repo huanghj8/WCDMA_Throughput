@@ -192,6 +192,11 @@ class WcdmaThroughput(Thread):
         :param att2: 衰减值2
         :return: None
         """
+        if self.cable_loss:
+            fre1 = self.cable_loss[0][0]
+            att1 = self.cable_loss[0][1]
+            fre2 = self.cable_loss[1][0]
+            att2 = self.cable_loss[1][1]
         self.write("SYST:CORR:STAT ON")
         self.write("SYSTEM:CORRECTION:FREQUENCY %s MHZ,%s MHZ" % (str(fre1), str(fre2)))
         self.write("SYSTEM:CORRECTION:GAIN %s,%s" % (str(att1), str(att2)))

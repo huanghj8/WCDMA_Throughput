@@ -229,12 +229,18 @@ class TestUI(wx.Frame):
 
         try:
             # 实例化线程并立即调用run()方法
-            wcdma_throughput.WcdmaThroughput(test_bands, cable_loss, chip_set, downlink_speed, uplink_speed)
+            wcdma_throughput.WcdmaThroughput(self, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed)
             event.GetEventObject().Disable()
         except Exception, e:
             self.logger.error(e)
             self.logger.error("请检查仪器及GPIB连接！")
             self.title_text.SetLabel("测试错误！")
+
+    def on_call_back_message(self, msg):
+        self.output_text.AppendText(msg)
+        self.output_text.AppendText("测试线程退出，等待重新测试")
+        self.begin_test_button.SetLabel("开始测试")
+        self.title_text.SetLabel("WCDMA吞吐量测试")
 
 
 if __name__ == '__main__':

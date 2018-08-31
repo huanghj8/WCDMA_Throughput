@@ -5,10 +5,12 @@
 import time
 from threading import Thread
 import os
+import wx
 import visa
 import xlsxwriter
 
 import my_logging
+import windows_ui
 
 
 class WcdmaThroughput(Thread):
@@ -16,9 +18,10 @@ class WcdmaThroughput(Thread):
     WCDMA物理层吞吐量测试线程
     """
 
-    def __init__(self, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed):
+    def __init__(self, windows, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed):
         """
         初始化参数
+        :param windows: 测试UI窗口
         :param test_bands:测试频段
         :param cable_loss: 线损
         :param chip_set: 芯片平台
@@ -39,7 +42,7 @@ class WcdmaThroughput(Thread):
 
         try:
             self.instrument = rm.list_resources()[0]
-            self.logger.info("选择设备列表第一个仪器，请确保只有一个串口设备连接")
+            self.logger.info("选择设备列表第一个仪器，请确保只有一个GPIB设备连接")
             self.logger.info('Try to connect instrument, address: %s' % self.instrument)
             self.my_instr = rm.open_resource(self.instrument)
             query = self.my_instr.query("*IDN?")
@@ -53,6 +56,7 @@ class WcdmaThroughput(Thread):
             self.logger.error(e)
             self.logger.error("无法识别GPIB设备！")
 
+        self.windows = windows
         self.bands = test_bands
         self.cable_loss = cable_loss
         self.chip_set = chip_set
@@ -68,7 +72,11 @@ class WcdmaThroughput(Thread):
         :param command: SCPI语句
         :return: None
         """
-        self.my_instr.write(command)
+        try:
+            self.my_instr.write(command)
+        except Exception, e:
+            self.logger.error(e)
+            self.logger.error("设备为空")
 
     def query(self, command):
         """
@@ -465,6 +473,7 @@ class WcdmaThroughput(Thread):
         self.case_all_uplink()
         self.process_result()
         self.logger.info("Test finish!")
+        wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows")
 
 
 if __name__ == "__main__":
@@ -480,5 +489,5 @@ if __name__ == "__main__":
     chip_set = 'MTK'
     down_sp = '42M'
     up_sp = '11.4M'
-
-    test_case = WcdmaThroughput(test_bands, cable_loss, chip_set, down_sp, up_sp)
+    test_ui = windows_ui.TestUI()
+    test_case = WcdmaThroughput(test_ui, test_bands, cable_loss, chip_set, down_sp, up_sp)

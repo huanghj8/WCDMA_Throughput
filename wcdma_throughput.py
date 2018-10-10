@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-# 用于测试WCDMA物理层上下行吞吐量,8960 Application当前为Fast Switch Lab App
+# 用于测试WCDMA物理&IP层上下行吞吐量,8960 Application当前为Fast Switch Lab App
 # 手机需关闭数据业务开关，否则无法进入Connected状态，而进入PDP ACTIVE状态
-
+import subprocess
 import time
 from threading import Thread
 import os
 import wx
 import visa
 import xlsxwriter
-
+import PyChariot
 import my_logging
 import windows_ui
+import xml.etree.ElementTree as ElementTree
 
 
 class WcdmaThroughput(Thread):
@@ -18,7 +19,8 @@ class WcdmaThroughput(Thread):
     WCDMA物理层吞吐量测试线程
     """
 
-    def __init__(self, windows, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed):
+    def __init__(self, windows, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed,
+                 test_phy_flag=False, test_ip_flag=False, e2='127.0.0.1'):
         """
         初始化参数
         :param windows: 测试UI窗口
@@ -29,6 +31,10 @@ class WcdmaThroughput(Thread):
         :param uplink_speed: DUT上行速率
         """
         super(WcdmaThroughput, self).__init__()
+        self.tree = ElementTree.parse('config.xml')
+        self.root = self.tree.getroot()
+        self.MAX_TIMES = 3
+        self.DURATION = self.root.find('duration').text
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
         self.local_time = time.strftime("%Y%m%d-%H%M%S")
@@ -62,6 +68,10 @@ class WcdmaThroughput(Thread):
         self.chip_set = chip_set
         self.downlink_speed = downlink_speed
         self.uplink_speed = uplink_speed
+        self.e1 = '127.0.0.1'
+        self.e2 = e2
+        self.test_phy_flag = test_phy_flag
+        self.test_ip_flag = test_ip_flag
 
         # 线程实例化时立即启动
         self.start()
@@ -279,7 +289,8 @@ class WcdmaThroughput(Thread):
         # set test mode parameter
         self.logger.info("set test mode parameter")
         self.write("CALL:HSDPa:SERVice:RBTest:HSDSchannel:CONFig UDEFined")
-        self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:HSDSchannel:MAC EHSPeed")  # enhanced high speed
+        self.write(
+            "CALL:HSDPa:SERVice:RBTest:UDEFined:HSDSchannel:MAC EHSPeed")  # enhanced high speed
         self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:HARQ:PROCess:COUNt 6")
         self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:MS:IREDundancy:BUFFer:ALLocation IMPLicit")
         self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa ON")
@@ -318,7 +329,8 @@ class WcdmaThroughput(Thread):
 
         self.write("CALL:SSCell:CONNected:CPIChannel:LEVel:HSDPa -8")
         self.write("CALL:SSCell:CONNected:CCPChannel:PRIMary:LEVel:HSDPa -20")  # -20 is the lowest
-        self.write("CALL:SSCell:CONNected:PICHannel:STATe:HSDPa OFF")  # use state instrution to set OFF
+        self.write(
+            "CALL:SSCell:CONNected:PICHannel:STATe:HSDPa OFF")  # use state instrution to set OFF
         self.write("CALL:SSCell:CONNected:HSPDschannel:LEVel:HSDPa -1")
         self.write("CALL:SSCell:CONNected:HSSCchannel1:LEVel:HSDPa -20")
         self.write("CALL:SSCell:CONNected:HSSCchannel2:LEVel:HSDPa -20")
@@ -347,7 +359,7 @@ class WcdmaThroughput(Thread):
         self.reset()
         self.set_cable_loss()
 
-    def recall_dl_register(self):
+    def recall_phy_dl_register(self):
         """
         调用仪器PHY42M注册表的方式配置，后续改为逐一配置指令
         :return: None
@@ -360,12 +372,40 @@ class WcdmaThroughput(Thread):
         self.active_cell()
         self.originate_call()
 
-    def recall_ul_register(self):
+    def recall_ip_dl_register(self):
         """
-        调用仪器PHY11M注册表的方式配置，后续改为逐一配置指令
-        :return:
+        调用仪器IP42M注册表的方式配置，后续改为逐一配置指令
+        :return: None
         """
         self.reset()
+        # ToDo 待确认注册表
+        self.write("SYSTem:REGister:RECall 6")
+        self.set_cable_loss()
+        self.set_chipset_platform()
+        self.set_downlink_speed()
+        self.active_cell()
+        self.originate_call()
+
+    def recall_phy_ul_register(self):
+        """
+        调用仪器PHY11M注册表的方式配置，后续改为逐一配置指令
+        :return:None
+        """
+        self.reset()
+        self.write("SYSTem:REGister:RECall 10")
+        self.set_cable_loss()
+        self.set_chipset_platform()
+        self.set_uplink_speed()
+        self.active_cell()
+        self.originate_call()
+
+    def recall_ip_ul_register(self):
+        """
+        调用仪器IP11M注册表的方式配置，后续改为逐一配置指令
+        :return:None
+        """
+        self.reset()
+        # ToDo 待确认注册表
         self.write("SYSTem:REGister:RECall 10")
         self.set_cable_loss()
         self.set_chipset_platform()
@@ -395,12 +435,13 @@ class WcdmaThroughput(Thread):
         elif self.uplink_speed == '5.7M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
 
-    def get_downlink_result(self):
+    def get_phy_downlink_result(self):
         """
-        获取下行传输块、吞吐量结果
+        获取物理下行传输块、吞吐量结果
         :return: 包含传输块、吞吐量的列表
         """
         self.write("SYST:MEAS:RES")  # Reset measurement
+        self.logger.info("Testing, wait for 5s...")
         time.sleep(5)
         transmit = self.query("CALL:HSDPa:MS:REPorted:BLOCks?")  # return blocks transmitted
         throughput = self.query("CALL:HSDPa:MS:REPorted:IBTHroughput?")  # return throughput
@@ -410,12 +451,13 @@ class WcdmaThroughput(Thread):
         # self.logger.info("BER: " + str(ber)) # 暂时不获取BER，保持与上行结果一致。后续再看需求
         return [transmit, throughput]
 
-    def get_uplink_result(self):
+    def get_phy_uplink_result(self):
         """
-        获取下行传输块、吞吐量结果
+        获取物理上行传输块、吞吐量结果
         :return: 包含传输块、吞吐量的列表
         """
         self.write("SYST:MEAS:RES")
+        self.logger.info("Testing, wait for 10s...")
         time.sleep(10)
         transmit = self.query("CALL:STATus:EHIChannel:ACK?")
         throughput = self.query("CALL:STATus:EDCHannel:IBTHroughput?")
@@ -423,13 +465,51 @@ class WcdmaThroughput(Thread):
         self.logger.info("throughput: " + str(throughput))
         return [transmit, throughput]
 
-    def case_all_downlink(self):
+    def get_ip_result(self, e1, e2, channel=0, pair_num=10):
         """
-        遍历所有信道的下行测试，记录于结果文本
+        获取IP层吞吐量,使用chariot测试，传入PC和DUT的IP地址，PC为127.0.0.1
+        :return: IP层吞吐量
+        """
+        a = PyChariot.chariot.Chariot()
+        a.add_pair(
+            e1_addr=str(e1), e2_addr=str(e2), script_name='Throughput.scr',
+            protocol=a.PROTOCOL_TCP, pair_number=pair_num
+        )
+
+        a.set_run_option(duration=self.DURATION)
+        self.logger.info("Running chariot, please wait %s seconds...", str(self.DURATION))
+        try:
+            a.run()
+            a.save_test()
+            a.set_filename('result/%s.tst' % str(channel))
+            (throughput, times) = a.get_group_throughput()
+            self.SET_TIMES = 0
+        except Exception, e:
+            self.logger.error(e)
+            self.logger.info('Wait for 35s to release TCP resource...')
+            subprocess.Popen('ipconfig/flushdns', shell=True)
+            time.sleep(35)
+            self.SET_TIMES += 1
+            if self.SET_TIMES < self.MAX_TIMES:
+                throughput = self.get_ip_result(e1, e2, pair_num=1)
+            else:
+                throughput = 0
+                self.SET_TIMES = 0
+        try:
+            a.clear_test()
+        except Exception, e:
+            self.logger.error(e)
+            self.logger.error('Clear Chariot test fail!')
+
+        return throughput
+
+    def case_all_phy_downlink(self):
+        """
+        遍历所有信道的phy下行测试，记录于结果文本
         :return: None
         """
         self.logger.info("#############  Begin to Test Downlink  #############")
-        self.recall_dl_register()
+        self.recall_phy_dl_register()
         filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
@@ -439,17 +519,17 @@ class WcdmaThroughput(Thread):
                 else:
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type)
-                result = self.get_downlink_result()
+                result = self.get_phy_downlink_result()
                 self.save_result(filename, band[0], channel, result)
         self.logger.info("############# DownLink Test Completed! ###########")
 
-    def case_all_uplink(self):
+    def case_all_ip_downlink(self):
         """
-        遍历所有信道的上行测试，记录于结果文本
+        遍历所有信道的IP层上行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  Begin to Test Uplink  #############")
-        self.recall_ul_register()
+        self.logger.info("#############  Begin to Test IP Downlink  #############")
+        self.recall_ip_dl_register()
         filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
@@ -459,18 +539,63 @@ class WcdmaThroughput(Thread):
                 else:
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type)
-                result = self.get_uplink_result()
+                result = self.get_ip_result(self.e1, self.e2, channel)
+                self.save_result(filename, band[0], channel, result)
+        self.logger.info("############# IP DownLink Test Completed! ###########")
+
+    def case_all_phy_uplink(self):
+        """
+        遍历所有信道的phy上行测试，记录于结果文本
+        :return: None
+        """
+        self.logger.info("#############  Begin to Test Uplink  #############")
+        self.recall_phy_ul_register()
+        filename = self.txt_result
+        for band in self.bands:
+            for i in range(len(band[1])):
+                channel = band[1][i]
+                if i / 2 == 1:
+                    channel_type = "high"
+                else:
+                    channel_type = "low/mid"
+                self.handover(channel, band[0], channel_type)
+                result = self.get_phy_uplink_result()
                 self.save_result(filename, band[0], channel, result)
 
         self.logger.info("############# UpLink Test Completed! #############")
+
+    def case_all_ip_uplink(self):
+        """
+        遍历所有信道的ip上行测试，记录于结果文本
+        :return: None
+        """
+        self.logger.info("#############  Begin to Test IP Uplink  #############")
+        self.recall_ip_ul_register()
+        filename = self.txt_result
+        for band in self.bands:
+            for i in range(len(band[1])):
+                channel = band[1][i]
+                if i / 2 == 1:
+                    channel_type = "high"
+                else:
+                    channel_type = "low/mid"
+                self.handover(channel, band[0], channel_type)
+                result = self.get_ip_result(self.e2, self.e1, channel)
+                self.save_result(filename, band[0], channel, result)
+
+        self.logger.info("#############IP UpLink Test Completed! #############")
 
     def run(self):
         """
         线程的run方法，实例化后立即运行
         :return: None
         """
-        self.case_all_downlink()
-        self.case_all_uplink()
+        if self.test_phy_flag:
+            self.case_all_phy_downlink()
+            self.case_all_phy_uplink()
+        if self.test_ip_flag:
+            self.case_all_ip_downlink()
+            self.case_all_ip_uplink()
         self.process_result()
         self.logger.info("Test finish!")
         wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows")

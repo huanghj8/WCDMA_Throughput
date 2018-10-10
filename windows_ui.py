@@ -8,7 +8,7 @@ import wx
 import wx.grid
 import logging
 import os
-
+import xml.etree.ElementTree as ElementTree
 import my_logging
 import wcdma_throughput
 
@@ -25,6 +25,9 @@ class TestUI(wx.Frame):
         :param kw: None
         """
         super(TestUI, self).__init__(*args, **kw)
+        self.tree = ElementTree.parse("config.xml")
+        self.root = self.tree.getroot()
+
         self.Center()
         self.my_logging = my_logging.MyLogging()
         self.logger = self.my_logging.get_logger()
@@ -81,7 +84,8 @@ class TestUI(wx.Frame):
         self.begin_test_button = wx.Button(self, -1, label="开始测试")
         self.Bind(wx.EVT_BUTTON, self.on_begin_test, self.begin_test_button)
 
-        self.output_text = wx.TextCtrl(self, -1, value="Output log...\n", style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.output_text = wx.TextCtrl(self, -1, value="Output log...\n",
+                                       style=wx.TE_READONLY | wx.TE_MULTILINE)
 
         box = wx.BoxSizer(wx.VERTICAL)
 
@@ -101,6 +105,18 @@ class TestUI(wx.Frame):
         parameter_box.Add(speed_box, 1, flag=wx.ALL, border=2)
 
         box.Add(parameter_box, flag=wx.ALL, border=15)
+        check_test_box = wx.BoxSizer(wx.HORIZONTAL)
+        self.test_phy_checkbox = wx.CheckBox(self, -1, label="测试物理层")
+        self.test_ip_checkbox = wx.CheckBox(self, -1, label="测试IP层")
+        self.ip_text = wx.StaticText(self, - 1, label="手机IP地址")
+        self.ip_input = wx.TextCtrl(self, -1, value="...")
+
+        check_test_box.Add(self.test_phy_checkbox, flag=wx.ALL, border=2)
+        check_test_box.Add(self.test_ip_checkbox, flag=wx.ALL, border=2)
+        check_test_box.Add(self.ip_text, flag=wx.ALL, border=2)
+        check_test_box.Add(self.ip_input, flag=wx.ALL, border=2)
+
+        box.Add(check_test_box, border=15)
         # 开始按钮
         box.Add(self.begin_test_button, 0, flag=wx.ALIGN_CENTER | wx.ALL, border=5)
         # 输出日志框
@@ -226,10 +242,17 @@ class TestUI(wx.Frame):
         self.logger.info("Downlink Speed is: %s" % downlink_speed)
         uplink_speed = self.ul_sp_box.GetStringSelection()
         self.logger.info("Uplink Speed is: %s" % uplink_speed)
+        # 检查物理/IP层测试项
+        self.root.find('test_phy_flag').text = str(self.test_phy_checkbox.IsChecked())
+        self.root.find('test_ip_flag').text = str(self.test_ip_checkbox.IsChecked())
+        self.root.find('dut_ip').text = str(self.ip_text.GetValue())
+        # 保存配置表
+        self.tree.write('config.xml', 'utf-8')
 
         try:
             # 实例化线程并立即调用run()方法
-            wcdma_throughput.WcdmaThroughput(self, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed)
+            wcdma_throughput.WcdmaThroughput(self, test_bands, cable_loss, chip_set, downlink_speed,
+                                             uplink_speed)
             event.GetEventObject().Disable()
         except Exception, e:
             self.logger.error(e)
@@ -239,6 +262,7 @@ class TestUI(wx.Frame):
     def on_call_back_message(self, msg):
         self.output_text.AppendText(msg)
         self.output_text.AppendText("测试线程退出，等待重新测试")
+        self.begin_test_button.Enable()
         self.begin_test_button.SetLabel("开始测试")
         self.title_text.SetLabel("WCDMA吞吐量测试")
 

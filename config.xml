@@ -1,0 +1,11 @@
+<collection attr="config">
+    <test_bands>1 2 3 4 5 8</test_bands>
+    <cable_loss>1800 1900</cable_loss>
+    <chipset>MTK</chipset>
+    <downlink_speed>42M</downlink_speed>
+    <uplink_speed>11.7M</uplink_speed>
+    <test_phy_flag>True</test_phy_flag>
+    <test_ip_flag>True</test_ip_flag>
+    <dut_ip>192.168.1.100</dut_ip>
+    <duration>15</duration>
+</collection>

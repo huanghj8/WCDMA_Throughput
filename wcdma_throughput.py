@@ -10,7 +10,6 @@ import visa
 import xlsxwriter
 import PyChariot
 import my_logging
-import windows_ui
 import xml.etree.ElementTree as ElementTree
 
 
@@ -599,9 +598,10 @@ class WcdmaThroughput(Thread):
         if self.test_ip_flag:
             self.case_all_ip_downlink()
             self.case_all_ip_uplink()
-        self.process_result()
+        if self.test_phy_flag or self.test_ip_flag:
+            self.process_result()
         self.logger.info("Test finish!")
-        wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows")
+        wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows\n")
 
 
 if __name__ == "__main__":
@@ -613,9 +613,11 @@ if __name__ == "__main__":
         [5, [4358, 4400, 4457]],  # band5
         [8, [2938, 3013, 3087]]  # band8
     ]
-    cable_loss = [0,0,0,0]
+    cable_loss = [0, 0, 0, 0]
     chip_set = 'MTK'
     down_sp = '42M'
     up_sp = '11.4M'
+    import windows_ui
+
     test_ui = windows_ui.TestUI()
     test_case = WcdmaThroughput(test_ui)

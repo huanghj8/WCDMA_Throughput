@@ -19,8 +19,7 @@ class WcdmaThroughput(Thread):
     WCDMA物理层吞吐量测试线程
     """
 
-    def __init__(self, windows, test_bands, cable_loss, chip_set, downlink_speed, uplink_speed,
-                 test_phy_flag=False, test_ip_flag=False, e2='127.0.0.1'):
+    def __init__(self, windows):
         """
         初始化参数
         :param windows: 测试UI窗口
@@ -63,15 +62,15 @@ class WcdmaThroughput(Thread):
             self.logger.error("无法识别GPIB设备！")
 
         self.windows = windows
-        self.bands = test_bands
-        self.cable_loss = cable_loss
-        self.chip_set = chip_set
-        self.downlink_speed = downlink_speed
-        self.uplink_speed = uplink_speed
+        self.bands = self.root.find('test_bands').text
+        self.cable_loss = self.root.find('cable_loss').text
+        self.chip_set = self.root.find('chip_set').text
+        self.downlink_speed = self.root.find('downlink_speed').text
+        self.uplink_speed = self.root.find('uplink_speed').text
         self.e1 = '127.0.0.1'
-        self.e2 = e2
-        self.test_phy_flag = test_phy_flag
-        self.test_ip_flag = test_ip_flag
+        self.e2 = self.root.find('dut_ip').text
+        self.test_phy_flag = self.root.find('test_phy_flag').text
+        self.test_ip_flag = self.root.find('test_ip_flag').text
 
         # 线程实例化时立即启动
         self.start()
@@ -211,10 +210,14 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         if self.cable_loss:
-            fre1 = self.cable_loss[0][0]
-            att1 = self.cable_loss[0][1]
-            fre2 = self.cable_loss[1][0]
-            att2 = self.cable_loss[1][1]
+            # fre1 = self.cable_loss[0][0]
+            # att1 = self.cable_loss[0][1]
+            # fre2 = self.cable_loss[1][0]
+            # att2 = self.cable_loss[1][1]
+            fre1 = self.cable_loss[0]
+            att1 = self.cable_loss[1]
+            fre2 = self.cable_loss[2]
+            att2 = self.cable_loss[3]
         self.write("SYST:CORR:STAT ON")
         self.write("SYSTEM:CORRECTION:FREQUENCY %s MHZ,%s MHZ" % (str(fre1), str(fre2)))
         self.write("SYSTEM:CORRECTION:GAIN %s,%s" % (str(att1), str(att2)))
@@ -610,9 +613,9 @@ if __name__ == "__main__":
         [5, [4358, 4400, 4457]],  # band5
         [8, [2938, 3013, 3087]]  # band8
     ]
-    cable_loss = [(0, 0), (0, 0)]
+    cable_loss = [0,0,0,0]
     chip_set = 'MTK'
     down_sp = '42M'
     up_sp = '11.4M'
     test_ui = windows_ui.TestUI()
-    test_case = WcdmaThroughput(test_ui, test_bands, cable_loss, chip_set, down_sp, up_sp)
+    test_case = WcdmaThroughput(test_ui)

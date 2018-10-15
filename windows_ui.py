@@ -10,7 +10,6 @@ import logging
 import os
 import xml.etree.ElementTree as ElementTree
 import my_logging
-import wcdma_throughput
 
 
 class TestUI(wx.Frame):
@@ -232,7 +231,8 @@ class TestUI(wx.Frame):
         att1 = '%.2f' % float(self.cable_loss_grid.GetCellValue(0, 1))
         freq2 = '%.1f' % float(self.cable_loss_grid.GetCellValue(1, 0))
         att2 = '%.2f' % float(self.cable_loss_grid.GetCellValue(1, 1))
-        cable_loss = [(freq1, att1), (freq2, att2)]
+        # cable_loss = [(freq1, att1), (freq2, att2)]
+        cable_loss = [freq1, att1, freq2, att2]
         self.logger.info("cable loss: %s" % str(cable_loss))
         # 更新芯片平台
         chip_set = self.chip_box.GetStringSelection()
@@ -243,16 +243,21 @@ class TestUI(wx.Frame):
         uplink_speed = self.ul_sp_box.GetStringSelection()
         self.logger.info("Uplink Speed is: %s" % uplink_speed)
         # 检查物理/IP层测试项
+        self.root.find('test_bands').text = str(test_bands)
+        self.root.find('cable_loss').text = str(cable_loss)
+        self.root.find('chip_set').text = chip_set
+        self.root.find('downlink_speed').text = downlink_speed
+        self.root.find('uplink_speed').text = uplink_speed
         self.root.find('test_phy_flag').text = str(self.test_phy_checkbox.IsChecked())
         self.root.find('test_ip_flag').text = str(self.test_ip_checkbox.IsChecked())
-        self.root.find('dut_ip').text = str(self.ip_text.GetValue())
+        self.root.find('dut_ip').text = str(self.ip_input.GetValue())
         # 保存配置表
         self.tree.write('config.xml', 'utf-8')
 
         try:
             # 实例化线程并立即调用run()方法
-            wcdma_throughput.WcdmaThroughput(self, test_bands, cable_loss, chip_set, downlink_speed,
-                                             uplink_speed)
+            import wcdma_throughput
+            wcdma_throughput.WcdmaThroughput(self)
             event.GetEventObject().Disable()
         except Exception, e:
             self.logger.error(e)

@@ -108,7 +108,7 @@ class TestUI(wx.Frame):
         self.test_phy_checkbox = wx.CheckBox(self, -1, label="测试物理层")
         self.test_ip_checkbox = wx.CheckBox(self, -1, label="测试IP层")
         self.ip_text = wx.StaticText(self, - 1, label="手机IP地址")
-        self.ip_input = wx.TextCtrl(self, -1, value="...")
+        self.ip_input = wx.TextCtrl(self, -1, value=self.root.find('dut_ip').text)
 
         check_test_box.Add(self.test_phy_checkbox, flag=wx.ALL, border=2)
         check_test_box.Add(self.test_ip_checkbox, flag=wx.ALL, border=2)
@@ -243,8 +243,8 @@ class TestUI(wx.Frame):
         uplink_speed = self.ul_sp_box.GetStringSelection()
         self.logger.info("Uplink Speed is: %s" % uplink_speed)
         # 检查物理/IP层测试项
-        self.root.find('test_bands').text = str(test_bands)
-        self.root.find('cable_loss').text = str(cable_loss)
+        self.root.find('test_bands').text = str(tuple(list_index))
+        self.root.find('cable_loss').text = str(tuple(cable_loss))
         self.root.find('chip_set').text = chip_set
         self.root.find('downlink_speed').text = downlink_speed
         self.root.find('uplink_speed').text = uplink_speed
@@ -257,7 +257,7 @@ class TestUI(wx.Frame):
         try:
             # 实例化线程并立即调用run()方法
             import wcdma_throughput
-            wcdma_throughput.WcdmaThroughput(self)
+            wcdma_throughput.WcdmaThroughput(self, cable_loss)
             event.GetEventObject().Disable()
         except Exception, e:
             self.logger.error(e)

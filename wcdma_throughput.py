@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # 用于测试WCDMA物理&IP层上下行吞吐量,8960 Application当前为Fast Switch Lab App
 # 手机需关闭数据业务开关，否则无法进入Connected状态，而进入PDP ACTIVE状态
+import re
 import subprocess
 import time
 from threading import Thread
@@ -18,7 +19,8 @@ class WcdmaThroughput(Thread):
     WCDMA物理层吞吐量测试线程
     """
 
-    def __init__(self, windows):
+    # def __init__(self, windows, cable_loss):
+    def __init__(self, cable_loss):
         """
         初始化参数
         :param windows: 测试UI窗口
@@ -40,6 +42,14 @@ class WcdmaThroughput(Thread):
         if not os.path.exists(self.result_path):
             os.makedirs(self.result_path)
         self.txt_result = 'result\\result_%s.txt' % str(self.local_time)
+        self.bands_all = [
+            [1, [10563, 10700, 10837]],  # band1
+            [2, [9663, 9800, 9937]],  # band2
+            [3, [1163, 1337, 1512]],  # band3
+            [4, [1538, 1675, 1737]],  # band4
+            [5, [4358, 4400, 4457]],  # band5
+            [8, [2938, 3013, 3087]]  # band8
+        ]
         rm = visa.ResourceManager()
         self.logger.info(rm)
         self.logger.info(rm.list_resources())
@@ -60,18 +70,32 @@ class WcdmaThroughput(Thread):
             self.logger.error(e)
             self.logger.error("无法识别GPIB设备！")
 
-        self.windows = windows
-        self.bands = self.root.find('test_bands').text
-        self.cable_loss = self.root.find('cable_loss').text
+        # self.windows = windows
+        self.bands_index = map(int, filter(None, re.split(r'[, ()]',
+                                                          self.root.find('test_bands').text)))
+        print "self.bands_index: ", self.bands_index
+        self.bands = [self.bands_all[i] for i in self.bands_index]
+        self.logger.info("Test bands: %s" % str(self.bands))
+        # self.cable_loss = map(float, filter(None, re.split(r'[, ()]',
+        #                                                        self.root.find('cable_loss').text)))
+        self.cable_loss = cable_loss
+        print self.cable_loss
+        # self.cable_loss = self.root.find('cable_loss').text
         self.chip_set = self.root.find('chip_set').text
         self.downlink_speed = self.root.find('downlink_speed').text
         self.uplink_speed = self.root.find('uplink_speed').text
         self.e1 = '127.0.0.1'
         self.e2 = self.root.find('dut_ip').text
-        self.test_phy_flag = self.root.find('test_phy_flag').text
-        self.test_ip_flag = self.root.find('test_ip_flag').text
+        if self.root.find('test_phy_flag').text == 'False':
+            self.test_phy_flag = False
+        else:
+            self.test_phy_flag = True
+        if self.root.find('test_ip_flag').text == 'False':
+            self.test_ip_flag = False
+        else:
+            self.test_ip_flag = True
 
-        # 线程实例化时立即启动
+            # 线程实例化时立即启动
         self.start()
 
     def write(self, command):
@@ -380,8 +404,7 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         self.reset()
-        # ToDo 待确认注册表
-        self.write("SYSTem:REGister:RECall 6")
+        self.write("SYSTem:REGister:RECall 5")
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_downlink_speed()
@@ -407,8 +430,7 @@ class WcdmaThroughput(Thread):
         :return:None
         """
         self.reset()
-        # ToDo 待确认注册表
-        self.write("SYSTem:REGister:RECall 10")
+        self.write("SYSTem:REGister:RECall 4")
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_uplink_speed()
@@ -478,7 +500,7 @@ class WcdmaThroughput(Thread):
             protocol=a.PROTOCOL_TCP, pair_number=pair_num
         )
 
-        a.set_run_option(duration=self.DURATION)
+        a.set_run_option(duration=int(self.DURATION))
         self.logger.info("Running chariot, please wait %s seconds...", str(self.DURATION))
         try:
             a.run()
@@ -601,7 +623,7 @@ class WcdmaThroughput(Thread):
         if self.test_phy_flag or self.test_ip_flag:
             self.process_result()
         self.logger.info("Test finish!")
-        wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows\n")
+        # wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows\n")
 
 
 if __name__ == "__main__":
@@ -619,5 +641,5 @@ if __name__ == "__main__":
     up_sp = '11.4M'
     import windows_ui
 
-    test_ui = windows_ui.TestUI()
-    test_case = WcdmaThroughput(test_ui)
+    # test_ui = windows_ui.TestUI()
+    test_case = WcdmaThroughput(cable_loss)

@@ -19,8 +19,8 @@ class WcdmaThroughput(Thread):
     WCDMA物理层吞吐量测试线程
     """
 
-    # def __init__(self, windows, cable_loss):
-    def __init__(self, cable_loss):
+    def __init__(self, windows, cable_loss):
+        # def __init__(self, cable_loss):
         """
         初始化参数
         :param windows: 测试UI窗口
@@ -31,6 +31,7 @@ class WcdmaThroughput(Thread):
         :param uplink_speed: DUT上行速率
         """
         super(WcdmaThroughput, self).__init__()
+        self.windows = windows
         self.tree = ElementTree.parse('config.xml')
         self.root = self.tree.getroot()
         self.MAX_TIMES = 3
@@ -125,7 +126,7 @@ class WcdmaThroughput(Thread):
         """
         return self.my_instr.read()
 
-    def handover(self, channel, band=1, channel_type="low/mid"):
+    def handover(self, channel, band=1, channel_type="low/mid", test_type="phy"):
         """
         信道切换方法
         :param channel: 目标信道
@@ -145,18 +146,34 @@ class WcdmaThroughput(Thread):
 
         self.write("CALL:HAND:PCR")
         time.sleep(2)
-        # 查询状态循环次数为5，避免程序卡住，并保留足够的手动连接时间
-        i = 5
+        # 查询状态循环次数为50，避免程序卡住，并保留足够的手动连接时间
+        i = 50
         while i > 0:
-            self.write("CALL:STAT?")
-            status = str(self.read())
-            self.logger.info("status:" + status)
-            if status == "CONN\n":  # Connected is returned when the test set and UE are connected on a call.
-                break
-            else:
-                self.logger.info("wait for connect...")
+            if test_type == "phy":
+                self.write("CALL:STAT?")
+                status = str(self.read())
+                self.logger.info("status:" + status)
+                # Connected is returned when the test set and UE are connected on a call.
+                if status == "CONN\n":
+                    break
+                else:
+                    self.logger.info("wait for connect...")
+                    time.sleep(2)
+                    i -= 1
+            elif test_type == "ip":
+                # IP层上行handover会掉回Idle状态，需要加时延等待，否则太快读取会报错
+                time.sleep(3)
+                self.write("CALL:STATus:DATA?")
                 time.sleep(2)
-                i -= 1
+                status = str(self.read())
+                self.logger.info("status:" + status)
+                # PDP is returned when the test set and UE are PDP actived.
+                if status == "PDP\n":
+                    break
+                else:
+                    self.logger.info("wait for connect...")
+                    time.sleep(2)
+                    i -= 1
 
     def set_chipset_platform(self):
         """
@@ -168,21 +185,24 @@ class WcdmaThroughput(Thread):
         elif self.chip_set == 'QUALCOMM':
             self.write('CALL:CELL:RLC:REEStablish OFF')
 
-    def save_result(self, filename, band, channel, result):
+    def save_result(self, filename, band, channel, result, test_type=''):
         """
         保存数据为文本格式
         :param filename: 文本路径
         :param band: 频段
         :param channel: 信道
-        :param result: 吞吐量即传输块结果
+        :param result: 吞吐量
+        :param test_type: 测试类型
         :return: None
         """
         self.logger.info('Save result...')
         result_file = open(filename, "a")
+        result_file.writelines(str(test_type) + '\t')
         result_file.writelines(str(band) + '\t')
         result_file.writelines(str(channel) + '\t')
-        for i in result:
-            result_file.write(str(float(i)) + '\t')
+        # for i in result:
+        #     result_file.write(str(float(i)) + '\t')
+        result_file.write(str(float(result)) + '\t')
         result_file.write('\n')
         result_file.close()
 
@@ -204,7 +224,7 @@ class WcdmaThroughput(Thread):
         worksheet.write(0, 0, 'Band', bold)
         worksheet.write(0, 1, 'Channel', bold)
         worksheet.write(0, 2, 'Transmit block', bold)
-        worksheet.write(0, 3, 'Throughput/Kbps', bold)
+        worksheet.write(0, 3, 'Throughput/Mbps', bold)
 
         # 写入数据
         row = 1
@@ -212,8 +232,11 @@ class WcdmaThroughput(Thread):
             result_list = line.split('\t')
             for col in range(len(result_list)):
                 try:
+                    # 第一列写入测试类型
+                    if col == 0:
+                        worksheet.write(row, col, str(result_list[col]))
                     # 换行符作为一行循环结束的标志
-                    if result_list[col] != '\n':
+                    elif result_list[col] != '\n':
                         worksheet.write(row, col, float(result_list[col]))
                 except Exception, e:
                     self.logger.error(e)
@@ -278,6 +301,27 @@ class WcdmaThroughput(Thread):
                 break
             else:
                 self.logger.info("wait for connect... try time: %d" % (101 - i))
+                self.logger.info("Try to turn on flight mode and turn off")
+                time.sleep(2)
+                i -= 1
+
+    def pdp_active(self):
+        """
+        发起PDP连接
+        :return: None
+        """
+        i = 100
+        while i > 0:
+            self.write("CALL:ORIGinate")
+            # 等待5s再查询状态
+            time.sleep(5)
+            status = self.query("CALL:STATus:DATA?")
+            # status = str(self.read())
+            self.logger.info("status:" + status)
+            if status == "PDP\n":
+                break
+            else:
+                self.logger.info("wait for PDP active... try time: %d" % (101 - i))
                 self.logger.info("Try to turn on flight mode and turn off")
                 time.sleep(2)
                 i -= 1
@@ -409,7 +453,7 @@ class WcdmaThroughput(Thread):
         self.set_chipset_platform()
         self.set_downlink_speed()
         self.active_cell()
-        self.originate_call()
+        self.pdp_active()
 
     def recall_phy_ul_register(self):
         """
@@ -435,7 +479,7 @@ class WcdmaThroughput(Thread):
         self.set_chipset_platform()
         self.set_uplink_speed()
         self.active_cell()
-        self.originate_call()
+        self.pdp_active()
 
     def set_downlink_speed(self):
         """
@@ -462,32 +506,36 @@ class WcdmaThroughput(Thread):
     def get_phy_downlink_result(self):
         """
         获取物理下行传输块、吞吐量结果
-        :return: 包含传输块、吞吐量的列表
+        :return: 物理下行吞吐量
         """
         self.write("SYST:MEAS:RES")  # Reset measurement
         self.logger.info("Testing, wait for 5s...")
         time.sleep(5)
         transmit = self.query("CALL:HSDPa:MS:REPorted:BLOCks?")  # return blocks transmitted
         throughput = self.query("CALL:HSDPa:MS:REPorted:IBTHroughput?")  # return throughput
+        # 转为Mbps为单位
+        throughput = float(throughput)/float(1000)
         # ber = self.query("CALL:HSDPa:MS:REPorted:HBLerror:RATio?")  # return BER
         self.logger.info("transmit: " + str(transmit))
         self.logger.info("throughput: " + str(throughput))
         # self.logger.info("BER: " + str(ber)) # 暂时不获取BER，保持与上行结果一致。后续再看需求
-        return [transmit, throughput]
+        return throughput
 
     def get_phy_uplink_result(self):
         """
         获取物理上行传输块、吞吐量结果
-        :return: 包含传输块、吞吐量的列表
+        :return: 物理上行吞吐量
         """
         self.write("SYST:MEAS:RES")
         self.logger.info("Testing, wait for 10s...")
         time.sleep(10)
         transmit = self.query("CALL:STATus:EHIChannel:ACK?")
         throughput = self.query("CALL:STATus:EDCHannel:IBTHroughput?")
+        # 转为Mbps为单位
+        throughput = float(throughput) / float(1000)
         self.logger.info("transmit: " + str(transmit))
         self.logger.info("throughput: " + str(throughput))
-        return [transmit, throughput]
+        return throughput
 
     def get_ip_result(self, e1, e2, channel=0, pair_num=10):
         """
@@ -505,7 +553,7 @@ class WcdmaThroughput(Thread):
         try:
             a.run()
             a.save_test()
-            a.set_filename('result/%s.tst' % str(channel))
+            a.set_filename('result/channel_%s.tst' % str(channel))
             (throughput, times) = a.get_group_throughput()
             self.SET_TIMES = 0
         except Exception, e:
@@ -524,7 +572,7 @@ class WcdmaThroughput(Thread):
         except Exception, e:
             self.logger.error(e)
             self.logger.error('Clear Chariot test fail!')
-
+        self.logger.info("The result is: %s" % str(throughput))
         return throughput
 
     def case_all_phy_downlink(self):
@@ -532,7 +580,7 @@ class WcdmaThroughput(Thread):
         遍历所有信道的phy下行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  Begin to Test Downlink  #############")
+        self.logger.info("#############  测试物理层下行，请关闭手机数据开关  #############")
         self.recall_phy_dl_register()
         filename = self.txt_result
         for band in self.bands:
@@ -544,15 +592,15 @@ class WcdmaThroughput(Thread):
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type)
                 result = self.get_phy_downlink_result()
-                self.save_result(filename, band[0], channel, result)
-        self.logger.info("############# DownLink Test Completed! ###########")
+                self.save_result(filename, band[0], channel, result, test_type='Phy downlink')
+        self.logger.info("############# 物理层下行测试完成 ###########")
 
     def case_all_ip_downlink(self):
         """
         遍历所有信道的IP层上行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  Begin to Test IP Downlink  #############")
+        self.logger.info("#############  测试IP层下行，请打开手机数据开关   #############")
         self.recall_ip_dl_register()
         filename = self.txt_result
         for band in self.bands:
@@ -562,17 +610,17 @@ class WcdmaThroughput(Thread):
                     channel_type = "high"
                 else:
                     channel_type = "low/mid"
-                self.handover(channel, band[0], channel_type)
+                self.handover(channel, band[0], channel_type, test_type="ip")
                 result = self.get_ip_result(self.e1, self.e2, channel)
-                self.save_result(filename, band[0], channel, result)
-        self.logger.info("############# IP DownLink Test Completed! ###########")
+                self.save_result(filename, band[0], channel, result, test_type='IP downlink')
+        self.logger.info("############# IP层下行测试完成 ###########")
 
     def case_all_phy_uplink(self):
         """
         遍历所有信道的phy上行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  Begin to Test Uplink  #############")
+        self.logger.info("#############  测试物理层上行，请关闭手机数据开关   #############")
         self.recall_phy_ul_register()
         filename = self.txt_result
         for band in self.bands:
@@ -584,16 +632,16 @@ class WcdmaThroughput(Thread):
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type)
                 result = self.get_phy_uplink_result()
-                self.save_result(filename, band[0], channel, result)
+                self.save_result(filename, band[0], channel, result, test_type='Phy uplink')
 
-        self.logger.info("############# UpLink Test Completed! #############")
+        self.logger.info("############# 物理层上行测试完成 #############")
 
     def case_all_ip_uplink(self):
         """
         遍历所有信道的ip上行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  Begin to Test IP Uplink  #############")
+        self.logger.info("#############  测试IP层上行，请打开手机数据开关   #############")
         self.recall_ip_ul_register()
         filename = self.txt_result
         for band in self.bands:
@@ -603,11 +651,11 @@ class WcdmaThroughput(Thread):
                     channel_type = "high"
                 else:
                     channel_type = "low/mid"
-                self.handover(channel, band[0], channel_type)
+                self.handover(channel, band[0], channel_type, test_type="ip")
                 result = self.get_ip_result(self.e2, self.e1, channel)
-                self.save_result(filename, band[0], channel, result)
+                self.save_result(filename, band[0], channel, result, test_type='IP uplink')
 
-        self.logger.info("#############IP UpLink Test Completed! #############")
+        self.logger.info("#############IP层上行测试完成 #############")
 
     def run(self):
         """
@@ -623,23 +671,23 @@ class WcdmaThroughput(Thread):
         if self.test_phy_flag or self.test_ip_flag:
             self.process_result()
         self.logger.info("Test finish!")
-        # wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows\n")
+        wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows\n")
 
-
-if __name__ == "__main__":
-    # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，主要用于调试
-
-    # 调试用的配置参数
-    test_bands = [
-        [1, [10563, 10700, 10837]],  # band1
-        [5, [4358, 4400, 4457]],  # band5
-        [8, [2938, 3013, 3087]]  # band8
-    ]
-    cable_loss = [0, 0, 0, 0]
-    chip_set = 'MTK'
-    down_sp = '42M'
-    up_sp = '11.4M'
-    import windows_ui
-
-    # test_ui = windows_ui.TestUI()
-    test_case = WcdmaThroughput(cable_loss)
+#
+# if __name__ == "__main__":
+#     # 当该模块被运行（而不是被导入到其他模块）时，该部分会执行，主要用于调试
+#
+#     # 调试用的配置参数
+#     test_bands = [
+#         [1, [10563, 10700, 10837]],  # band1
+#         [5, [4358, 4400, 4457]],  # band5
+#         [8, [2938, 3013, 3087]]  # band8
+#     ]
+#     cable_loss = [0, 0, 0, 0]
+#     chip_set = 'MTK'
+#     down_sp = '42M'
+#     up_sp = '11.4M'
+#     import windows_ui
+#
+#     test_ui = windows_ui.TestUI()
+#     test_case = WcdmaThroughput(test_ui,cable_loss)

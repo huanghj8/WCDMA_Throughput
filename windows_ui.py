@@ -257,7 +257,7 @@ class TestUI(wx.Frame):
         try:
             # 实例化线程并立即调用run()方法
             import wcdma_throughput
-            wcdma_throughput.WcdmaThroughput(self, cable_loss)
+            wcdma_throughput.WcdmaThroughput(self,cable_loss)
             event.GetEventObject().Disable()
         except Exception, e:
             self.logger.error(e)

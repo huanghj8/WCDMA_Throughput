@@ -59,8 +59,8 @@ class TestUI(wx.Frame):
         self.cable_loss_grid.CreateGrid(2, 2)
         self.cable_loss_grid.SetCellValue(0, 0, '800.0')
         self.cable_loss_grid.SetCellValue(1, 0, '1800.0')
-        self.cable_loss_grid.SetCellValue(0, 1, '-0.5')
-        self.cable_loss_grid.SetCellValue(1, 1, '-0.8')
+        self.cable_loss_grid.SetCellValue(0, 1, '-1.0')
+        self.cable_loss_grid.SetCellValue(1, 1, '-1.2')
         self.cable_loss_grid.SetColLabelValue(0, '频率/MHz')
         self.cable_loss_grid.SetColLabelValue(1, '衰减/dB')
         self.cable_loss_grid.HideRowLabels()
@@ -184,8 +184,8 @@ class TestUI(wx.Frame):
         :param event:点击事件
         :return: None
         """
-        wx.MessageBox("Contact: huanghaijie@tp-link.com.cn",
-                      "AutoTest Platform Sample: Ver. 0.1",
+        wx.MessageBox(self.root.find("help_messages").text,
+                      "AutoTest Platform Sample: Ver. 1.1",
                       wx.OK | wx.ICON_INFORMATION)
 
     def on_select_chip(self, event):

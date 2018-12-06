@@ -31,6 +31,7 @@ class WcdmaThroughput(Thread):
         :param uplink_speed: DUT上行速率
         """
         super(WcdmaThroughput, self).__init__()
+        self.debug_mode = 1
         self.windows = windows
         self.tree = ElementTree.parse('config.xml')
         self.root = self.tree.getroot()
@@ -221,9 +222,9 @@ class WcdmaThroughput(Thread):
         lines = txt_result_file.readlines()
 
         # 写入表头
-        worksheet.write(0, 0, 'Band', bold)
-        worksheet.write(0, 1, 'Channel', bold)
-        worksheet.write(0, 2, 'Transmit block', bold)
+        worksheet.write(0, 0, 'Test mode', bold)
+        worksheet.write(0, 1, 'Band', bold)
+        worksheet.write(0, 2, 'Channel', bold)
         worksheet.write(0, 3, 'Throughput/Mbps', bold)
 
         # 写入数据
@@ -245,6 +246,17 @@ class WcdmaThroughput(Thread):
         # 保存文件
         txt_result_file.close()
         workbook.close()
+
+    def set_gpib_debug(self, state):
+        """
+        设置GPIB调试模式
+        :return:
+        """
+        if state:
+            self.write("SYST:COMM:GPIB:DEB ON")
+        else:
+            self.write("SYST:COMM:GPIB:DEB OFF")
+        self.logger.info("GPIB debug mode: %s" % bool(state))
 
     def set_cable_loss(self, fre1=800.0, fre2=1800.0, att1=-0.50, att2=-0.80):
         """
@@ -275,13 +287,33 @@ class WcdmaThroughput(Thread):
         """
         self.write("*RST")
 
+    def clear_error_msg(self):
+        """
+        清除仪器面板的提示信息
+        :return:
+        """
+        error_msg = self.query("SYSTem:ERRor? ")
+        self.logger.info(str(error_msg))
+        self.write("DISPlay:WINDow:ERRor:CLEar")
+
     def active_cell(self):
         """
         激活小区的命令
         :return: None
         """
         self.write("CALL:OPERating:MODE CALL")
-        time.sleep(1)
+        self.write("Turn on cell, please wait...")
+        time.sleep(2)
+
+    def off_cell(self):
+        """
+        关闭小区的命令
+        :return:
+        """
+        self.reset()
+        self.write("CALL:OPERating:MODE OFF")
+        self.logger.info("Turn off cell, please wait...")
+        time.sleep(5)
 
     def originate_call(self):
         """
@@ -312,8 +344,9 @@ class WcdmaThroughput(Thread):
         """
         i = 100
         while i > 0:
-            self.write("CALL:ORIGinate")
+            # self.write("CALL:ORIGinate")
             # 等待5s再查询状态
+            # 等待自动连接PDP
             time.sleep(5)
             status = self.query("CALL:STATus:DATA?")
             # status = str(self.read())
@@ -325,6 +358,13 @@ class WcdmaThroughput(Thread):
                 self.logger.info("Try to turn on flight mode and turn off")
                 time.sleep(2)
                 i -= 1
+
+    def set_dut_data_switch(self, mode):
+        if mode:
+            os.system("adb shell svc data %s" % "enable")
+        else:
+            os.system("adb shell svc data %s" % "disable")
+            time.sleep(3)
 
     def set_downlink_environment(self):
         """
@@ -435,6 +475,7 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         self.reset()
+        # self.off_cell()
         self.write("SYSTem:REGister:RECall 6")
         self.set_cable_loss()
         self.set_chipset_platform()
@@ -448,6 +489,7 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         self.reset()
+        self.off_cell()
         self.write("SYSTem:REGister:RECall 5")
         self.set_cable_loss()
         self.set_chipset_platform()
@@ -461,6 +503,7 @@ class WcdmaThroughput(Thread):
         :return:None
         """
         self.reset()
+        # self.off_cell()
         self.write("SYSTem:REGister:RECall 10")
         self.set_cable_loss()
         self.set_chipset_platform()
@@ -474,6 +517,7 @@ class WcdmaThroughput(Thread):
         :return:None
         """
         self.reset()
+        self.off_cell()
         self.write("SYSTem:REGister:RECall 4")
         self.set_cable_loss()
         self.set_chipset_platform()
@@ -514,7 +558,7 @@ class WcdmaThroughput(Thread):
         transmit = self.query("CALL:HSDPa:MS:REPorted:BLOCks?")  # return blocks transmitted
         throughput = self.query("CALL:HSDPa:MS:REPorted:IBTHroughput?")  # return throughput
         # 转为Mbps为单位
-        throughput = float(throughput)/float(1000)
+        throughput = float(throughput) / float(1000)
         # ber = self.query("CALL:HSDPa:MS:REPorted:HBLerror:RATio?")  # return BER
         self.logger.info("transmit: " + str(transmit))
         self.logger.info("throughput: " + str(throughput))
@@ -537,7 +581,7 @@ class WcdmaThroughput(Thread):
         self.logger.info("throughput: " + str(throughput))
         return throughput
 
-    def get_ip_result(self, e1, e2, channel=0, pair_num=10):
+    def get_ip_result(self, e1, e2, mode="downlink", channel=0, pair_num=10):
         """
         获取IP层吞吐量,使用chariot测试，传入PC和DUT的IP地址，PC为127.0.0.1
         :return: IP层吞吐量
@@ -553,7 +597,7 @@ class WcdmaThroughput(Thread):
         try:
             a.run()
             a.save_test()
-            a.set_filename('result/channel_%s.tst' % str(channel))
+            a.set_filename('result/%s_channel_%s.tst' % (str(mode), str(channel)))
             (throughput, times) = a.get_group_throughput()
             self.SET_TIMES = 0
         except Exception, e:
@@ -581,7 +625,10 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         self.logger.info("#############  测试物理层下行，请关闭手机数据开关  #############")
+        self.logger.info("Turn off DUT'S data switch...")
+        self.set_dut_data_switch(0)
         self.recall_phy_dl_register()
+        self.clear_error_msg()
         filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
@@ -601,7 +648,10 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         self.logger.info("#############  测试IP层下行，请打开手机数据开关   #############")
+        self.logger.info("Turn on DUT'S data switch...")
+        self.set_dut_data_switch(1)
         self.recall_ip_dl_register()
+        self.clear_error_msg()
         filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
@@ -611,7 +661,7 @@ class WcdmaThroughput(Thread):
                 else:
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type, test_type="ip")
-                result = self.get_ip_result(self.e1, self.e2, channel)
+                result = self.get_ip_result(self.e1, self.e2, mode="downlink", channel=channel)
                 self.save_result(filename, band[0], channel, result, test_type='IP downlink')
         self.logger.info("############# IP层下行测试完成 ###########")
 
@@ -621,7 +671,10 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         self.logger.info("#############  测试物理层上行，请关闭手机数据开关   #############")
+        self.logger.info("Turn off DUT'S data switch...")
+        self.set_dut_data_switch(0)
         self.recall_phy_ul_register()
+        self.clear_error_msg()
         filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
@@ -642,6 +695,8 @@ class WcdmaThroughput(Thread):
         :return: None
         """
         self.logger.info("#############  测试IP层上行，请打开手机数据开关   #############")
+        self.logger.info("Turn on DUT'S data switch...")
+        self.set_dut_data_switch(1)
         self.recall_ip_ul_register()
         filename = self.txt_result
         for band in self.bands:
@@ -652,7 +707,8 @@ class WcdmaThroughput(Thread):
                 else:
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type, test_type="ip")
-                result = self.get_ip_result(self.e2, self.e1, channel)
+                self.clear_error_msg()
+                result = self.get_ip_result(self.e2, self.e1, mode="uplink", channel=channel)
                 self.save_result(filename, band[0], channel, result, test_type='IP uplink')
 
         self.logger.info("#############IP层上行测试完成 #############")
@@ -662,14 +718,21 @@ class WcdmaThroughput(Thread):
         线程的run方法，实例化后立即运行
         :return: None
         """
+        if self.debug_mode:
+            self.set_gpib_debug(1)
         if self.test_phy_flag:
             self.case_all_phy_downlink()
             self.case_all_phy_uplink()
+        if self.test_phy_flag and self.test_ip_flag:
+            self.logger.info("wait for 60s for drop net...")
+            time.sleep(60)
         if self.test_ip_flag:
             self.case_all_ip_downlink()
             self.case_all_ip_uplink()
         if self.test_phy_flag or self.test_ip_flag:
             self.process_result()
+        self.reset()
+        self.off_cell()
         self.logger.info("Test finish!")
         wx.CallAfter(self.windows.on_call_back_message, "Thread message to windows\n")
 

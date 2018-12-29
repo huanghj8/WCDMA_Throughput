@@ -1,10 +1,10 @@
 <collection attr="config">
-    <test_bands>(4,)</test_bands>
+    <test_bands>(0, 5)</test_bands>
     <cable_loss>('800.0', '-1.00', '1800.0', '-1.20')</cable_loss>
     <chip_set>MTK</chip_set>
-    <downlink_speed>42M</downlink_speed>
-    <uplink_speed>11.4M</uplink_speed>
-    <test_phy_flag>False</test_phy_flag>
+    <downlink_speed>21M</downlink_speed>
+    <uplink_speed>5.7M</uplink_speed>
+    <test_phy_flag>True</test_phy_flag>
     <test_ip_flag>True</test_ip_flag>
     <dut_ip>192.168.1.15</dut_ip>
     <duration>15</duration>
@@ -14,8 +14,9 @@
         本程序用于测试WCDMA物理层/IP层吞吐量。
         测试准备：
         1.PC通过USB连接DUT。
-        2.Cmd输入adb devices，确保有输出设备号且显示devices。
-        3.DUT打开endpoint客户端，
+        2.GPIB连接8960和PC。
+        3.Cmd输入adb devices，确保有输出设备号且显示devices。
+        4.DUT打开endpoint客户端，
 
         Contact: huanghaijie@tp-link.com.cn
     </help_messages>

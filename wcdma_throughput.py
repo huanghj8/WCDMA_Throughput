@@ -359,7 +359,32 @@ class WcdmaThroughput(Thread):
                 time.sleep(2)
                 i -= 1
 
+    def end_call(self):
+        """
+        结束连接
+        :return:None
+        """
+        self.write("CALL:END")
+        self.logger.info("End call...")
+        time.sleep(3)
+
+    def cell_power(self, power):
+        """
+        设置小区输出功率
+        :param power: 功率值
+        :return: None
+        """
+        try:
+            self.write("CALL:POWer %s" % str(power))
+        except Exception, e:
+            self.logger.error(e)
+
     def set_dut_data_switch(self, mode):
+        """
+        设置手机数据业务开关的状态
+        :param mode: 1为打开数据开关；0为关闭
+        :return: None
+        """
         if mode:
             os.system("adb shell svc data %s" % "enable")
         else:
@@ -479,7 +504,7 @@ class WcdmaThroughput(Thread):
         self.write("SYSTem:REGister:RECall 6")
         self.set_cable_loss()
         self.set_chipset_platform()
-        self.set_downlink_speed()
+        self.set_phy_downlink_speed()
         self.active_cell()
         self.originate_call()
 
@@ -493,7 +518,7 @@ class WcdmaThroughput(Thread):
         self.write("SYSTem:REGister:RECall 5")
         self.set_cable_loss()
         self.set_chipset_platform()
-        self.set_downlink_speed()
+        self.set_ip_downlink_speed()
         self.active_cell()
         self.pdp_active()
 
@@ -507,7 +532,7 @@ class WcdmaThroughput(Thread):
         self.write("SYSTem:REGister:RECall 10")
         self.set_cable_loss()
         self.set_chipset_platform()
-        self.set_uplink_speed()
+        self.set_phy_uplink_speed()
         self.active_cell()
         self.originate_call()
 
@@ -521,11 +546,11 @@ class WcdmaThroughput(Thread):
         self.write("SYSTem:REGister:RECall 4")
         self.set_cable_loss()
         self.set_chipset_platform()
-        self.set_uplink_speed()
+        self.set_ip_uplink_speed()
         self.active_cell()
         self.pdp_active()
 
-    def set_downlink_speed(self):
+    def set_phy_downlink_speed(self):
         """
          设置下行速率，支持DC则为42M，不支持则为21M
         :return: None
@@ -537,7 +562,29 @@ class WcdmaThroughput(Thread):
             self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa OFF")
             self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback OFF")
 
-    def set_uplink_speed(self):
+    def set_ip_downlink_speed(self):
+        """
+         设置下行速率，支持DC则为42M，不支持则为21M
+        :return: None
+        """
+        if self.downlink_speed == '42M':
+            self.write("CALL:HSDPa:SERVice:PSData:DCHSDPA ON")
+            # self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback ON")
+        elif self.downlink_speed == '21M':
+            self.write("CALL:HSDPa:SERVice:PSData:DCHSDPA OFF")
+            # self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback OFF")
+
+    def set_phy_uplink_speed(self):
+        """
+        设置上行速率，支持16QAM为11.4M，不支持则为5.7M
+        :return: None
+        """
+        if self.uplink_speed == '11.4M':
+            self.write("CALL:HSUPa:EDCHannel:QAM16 ON")
+        elif self.uplink_speed == '5.7M':
+            self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
+
+    def set_ip_uplink_speed(self):
         """
         设置上行速率，支持16QAM为11.4M，不支持则为5.7M
         :return: None
@@ -624,7 +671,7 @@ class WcdmaThroughput(Thread):
         遍历所有信道的phy下行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  测试物理层下行，请关闭手机数据开关  #############")
+        self.logger.info("#############  Begin Phy Downlink Test  #############")
         self.logger.info("Turn off DUT'S data switch...")
         self.set_dut_data_switch(0)
         self.recall_phy_dl_register()
@@ -640,14 +687,15 @@ class WcdmaThroughput(Thread):
                 self.handover(channel, band[0], channel_type)
                 result = self.get_phy_downlink_result()
                 self.save_result(filename, band[0], channel, result, test_type='Phy downlink')
-        self.logger.info("############# 物理层下行测试完成 ###########")
+        self.end_call()
+        self.logger.info("############# Finish Phy Downlink Test ###########")
 
     def case_all_ip_downlink(self):
         """
         遍历所有信道的IP层上行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  测试IP层下行，请打开手机数据开关   #############")
+        self.logger.info("#############  Begin IP Downlink Test   #############")
         self.logger.info("Turn on DUT'S data switch...")
         self.set_dut_data_switch(1)
         self.recall_ip_dl_register()
@@ -663,18 +711,18 @@ class WcdmaThroughput(Thread):
                 self.handover(channel, band[0], channel_type, test_type="ip")
                 result = self.get_ip_result(self.e1, self.e2, mode="downlink", channel=channel)
                 self.save_result(filename, band[0], channel, result, test_type='IP downlink')
-        self.logger.info("############# IP层下行测试完成 ###########")
+        self.end_call()
+        self.logger.info("############# Finish IP Downlink Test ###########")
 
     def case_all_phy_uplink(self):
         """
         遍历所有信道的phy上行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  测试物理层上行，请关闭手机数据开关   #############")
+        self.logger.info("#############  Begin Phy Uplink Test  #############")
         self.logger.info("Turn off DUT'S data switch...")
         self.set_dut_data_switch(0)
         self.recall_phy_ul_register()
-        self.clear_error_msg()
         filename = self.txt_result
         for band in self.bands:
             for i in range(len(band[1])):
@@ -684,17 +732,18 @@ class WcdmaThroughput(Thread):
                 else:
                     channel_type = "low/mid"
                 self.handover(channel, band[0], channel_type)
+                self.clear_error_msg()
                 result = self.get_phy_uplink_result()
                 self.save_result(filename, band[0], channel, result, test_type='Phy uplink')
-
-        self.logger.info("############# 物理层上行测试完成 #############")
+        self.end_call()
+        self.logger.info("############# Finish Phy Uplink Test #############")
 
     def case_all_ip_uplink(self):
         """
         遍历所有信道的ip上行测试，记录于结果文本
         :return: None
         """
-        self.logger.info("#############  测试IP层上行，请打开手机数据开关   #############")
+        self.logger.info("#############  Begin IP Uplink Test #############")
         self.logger.info("Turn on DUT'S data switch...")
         self.set_dut_data_switch(1)
         self.recall_ip_ul_register()
@@ -710,8 +759,21 @@ class WcdmaThroughput(Thread):
                 self.clear_error_msg()
                 result = self.get_ip_result(self.e2, self.e1, mode="uplink", channel=channel)
                 self.save_result(filename, band[0], channel, result, test_type='IP uplink')
+        self.end_call()
+        self.logger.info("#############  Finish IP Uplink Test  #############")
 
-        self.logger.info("#############IP层上行测试完成 #############")
+    def phy_downlink_pat(self):
+        """
+        物理层拉锯测试
+        :return:
+        """
+
+
+    def ip_downlink_pat(self):
+        """
+        ip层拉锯测试
+        :return:
+        """
 
     def run(self):
         """

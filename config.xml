@@ -1,11 +1,11 @@
 <collection attr="config">
-    <test_bands>(0, 5)</test_bands>
+    <test_bands>(1, 4, 5)</test_bands>
     <cable_loss>('800.0', '-1.00', '1800.0', '-1.20')</cable_loss>
     <chip_set>MTK</chip_set>
-    <downlink_speed>21M</downlink_speed>
-    <uplink_speed>5.7M</uplink_speed>
+    <downlink_speed>42M</downlink_speed>
+    <uplink_speed>11.4M</uplink_speed>
     <test_phy_flag>True</test_phy_flag>
-    <test_ip_flag>True</test_ip_flag>
+    <test_ip_flag>False</test_ip_flag>
     <dut_ip>192.168.1.15</dut_ip>
     <duration>15</duration>
 

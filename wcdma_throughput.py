@@ -391,6 +391,25 @@ class WcdmaThroughput(Thread):
             os.system("adb shell svc data %s" % "disable")
             time.sleep(3)
 
+    def set_channel(self, channel):
+        """
+        关闭cell后设置信道
+        :return: None
+        """
+        self.off_cell()
+        self.write("CALL:CHANnel %s" %str(channel))
+        self.logger.info("Set channel to %s" % str(channel))
+        time.sleep(1)
+
+    def set_init_connect_channel(self):
+        """
+        切换到DUT支持的初始连接信道
+        :return:None
+        """
+        band = self.bands[0]
+        channel = band[1][0]
+        self.set_channel(channel)
+
     def set_downlink_environment(self):
         """
         配置下行吞吐量测试环境,手册未查找到配置E6.2.3.4表的指令，因此换用调用注册表方式。后续完善。
@@ -505,6 +524,7 @@ class WcdmaThroughput(Thread):
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_phy_downlink_speed()
+        self.set_init_connect_channel()
         self.active_cell()
         self.originate_call()
 
@@ -519,6 +539,7 @@ class WcdmaThroughput(Thread):
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_ip_downlink_speed()
+        self.set_init_connect_channel()
         self.active_cell()
         self.pdp_active()
 
@@ -533,6 +554,7 @@ class WcdmaThroughput(Thread):
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_phy_uplink_speed()
+        self.set_init_connect_channel()
         self.active_cell()
         self.originate_call()
 
@@ -547,6 +569,7 @@ class WcdmaThroughput(Thread):
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_ip_uplink_speed()
+        self.set_init_connect_channel()
         self.active_cell()
         self.pdp_active()
 
@@ -767,7 +790,6 @@ class WcdmaThroughput(Thread):
         物理层拉锯测试
         :return:
         """
-
 
     def ip_downlink_pat(self):
         """

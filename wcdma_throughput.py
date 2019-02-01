@@ -185,6 +185,8 @@ class WcdmaThroughput(Thread):
             self.write('CALL:CELL:RLC:REEStablish AUTO')
         elif self.chip_set == 'QUALCOMM':
             self.write('CALL:CELL:RLC:REEStablish OFF')
+        self.logger.info("Set chip platform..")
+        time.sleep(1)
 
     def save_result(self, filename, band, channel, result, test_type=''):
         """
@@ -279,6 +281,8 @@ class WcdmaThroughput(Thread):
         self.write("SYST:CORR:STAT ON")
         self.write("SYSTEM:CORRECTION:FREQUENCY %s MHZ,%s MHZ" % (str(fre1), str(fre2)))
         self.write("SYSTEM:CORRECTION:GAIN %s,%s" % (str(att1), str(att2)))
+        self.logger.info("Set correction...")
+        time.sleep(1)
 
     def reset(self):
         """
@@ -301,7 +305,7 @@ class WcdmaThroughput(Thread):
         激活小区的命令
         :return: None
         """
-        self.write("CALL:OPERating:MODE CALL")
+        self.write("CALL:CELL:OPERating:MODE CALL")
         self.write("Turn on cell, please wait...")
         time.sleep(2)
 
@@ -310,7 +314,6 @@ class WcdmaThroughput(Thread):
         关闭小区的命令
         :return:
         """
-        self.reset()
         self.write("CALL:OPERating:MODE OFF")
         self.logger.info("Turn off cell, please wait...")
         time.sleep(5)
@@ -521,6 +524,8 @@ class WcdmaThroughput(Thread):
         self.reset()
         # self.off_cell()
         self.write("SYSTem:REGister:RECall 6")
+        self.logger.info("recall 6")
+        time.sleep(3)
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_phy_downlink_speed()
@@ -536,6 +541,7 @@ class WcdmaThroughput(Thread):
         self.reset()
         self.off_cell()
         self.write("SYSTem:REGister:RECall 5")
+        time.sleep(3)
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_ip_downlink_speed()
@@ -551,6 +557,7 @@ class WcdmaThroughput(Thread):
         self.reset()
         # self.off_cell()
         self.write("SYSTem:REGister:RECall 10")
+        time.sleep(3)
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_phy_uplink_speed()
@@ -566,6 +573,7 @@ class WcdmaThroughput(Thread):
         self.reset()
         self.off_cell()
         self.write("SYSTem:REGister:RECall 4")
+        time.sleep(3)
         self.set_cable_loss()
         self.set_chipset_platform()
         self.set_ip_uplink_speed()
@@ -584,6 +592,8 @@ class WcdmaThroughput(Thread):
         elif self.downlink_speed == '21M':
             self.write("CALL:HSDPa:SERVice:RBTest:UDEFined:DCHSdpa OFF")
             self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback OFF")
+        self.logger.info("Set downlink Speed...")
+        time.sleep(1)
 
     def set_ip_downlink_speed(self):
         """
@@ -596,6 +606,8 @@ class WcdmaThroughput(Thread):
         elif self.downlink_speed == '21M':
             self.write("CALL:HSDPa:SERVice:PSData:DCHSDPA OFF")
             # self.write("CALL:HSDPa:SERVice:RBTest:DCHSdpa:DPCH:LOOPback OFF")
+        self.logger.info("Set downlink Speed...")
+        time.sleep(1)
 
     def set_phy_uplink_speed(self):
         """
@@ -606,6 +618,8 @@ class WcdmaThroughput(Thread):
             self.write("CALL:HSUPa:EDCHannel:QAM16 ON")
         elif self.uplink_speed == '5.7M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
+        self.logger.info("Set uplink Speed...")
+        time.sleep(1)
 
     def set_ip_uplink_speed(self):
         """
@@ -616,6 +630,8 @@ class WcdmaThroughput(Thread):
             self.write("CALL:HSUPa:EDCHannel:QAM16 ON")
         elif self.uplink_speed == '5.7M':
             self.write("CALL:HSUPa:EDCHannel:QAM16 OFF")
+        self.logger.info("Set uplink Speed...")
+        time.sleep(1)
 
     def get_phy_downlink_result(self):
         """

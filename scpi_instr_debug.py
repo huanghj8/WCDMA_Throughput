@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import time
 import visa
 
 
@@ -40,7 +40,10 @@ class scpi_instr_debug():
         :return:None
         """
         # print self.write("SYST:COMM:GPIB:DEB ON")
-        self.write("CALL:POWer %s" % str(para))
+        # self.write("CALL:POWer %s" % str(para))
+        self.write("SYSTem:REGister:RECall 5")
+        time.sleep(3)
+
 
 
 if __name__ == "__main__":

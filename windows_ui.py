@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C), TP-LINK Technologies Co., Ltd.
+
 # Author: Huang Haijie
-# Email : huanghaijie@tp-link.com.cn
+
 # Create time: 2018/7/31 9:05
 import wx
 import wx.grid
